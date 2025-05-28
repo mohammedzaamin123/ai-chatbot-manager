@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "@/contexts/ThemeContext";
+import { GlobalThemeProvider } from "@/contexts/GlobalThemeContext";
 import { UserProvider } from "@/contexts/UserContext";
 import { AdminLayout } from "@/components/Layout/AdminLayout";
 import { Dashboard } from "@/pages/Dashboard";
@@ -24,67 +25,69 @@ const queryClient = new QueryClient();
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <ThemeProvider>
-      <UserProvider>
-        <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <Routes>
-              <Route path="/" element={
-                <AdminLayout>
-                  <Dashboard />
-                </AdminLayout>
-              } />
-              <Route path="/tenants" element={
-                <AdminLayout>
-                  <Tenants />
-                </AdminLayout>
-              } />
-              <Route path="/users" element={
-                <AdminLayout>
-                  <Users />
-                </AdminLayout>
-              } />
-              <Route path="/channels" element={
-                <AdminLayout>
-                  <Channels />
-                </AdminLayout>
-              } />
-              <Route path="/chatbot" element={
-                <AdminLayout>
-                  <ChatbotTuning />
-                </AdminLayout>
-              } />
-              <Route path="/api-keys" element={
-                <AdminLayout>
-                  <ApiKeys />
-                </AdminLayout>
-              } />
-              <Route path="/database" element={
-                <AdminLayout>
-                  <Database />
-                </AdminLayout>
-              } />
-              <Route path="/integrations" element={
-                <AdminLayout>
-                  <Integrations />
-                </AdminLayout>
-              } />
-              <Route path="/webhooks" element={
-                <AdminLayout>
-                  <Webhooks />
-                </AdminLayout>
-              } />
-              <Route path="/settings" element={
-                <AdminLayout>
-                  <Settings />
-                </AdminLayout>
-              } />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </BrowserRouter>
-        </TooltipProvider>
-      </UserProvider>
+      <GlobalThemeProvider>
+        <UserProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              <Routes>
+                <Route path="/" element={
+                  <AdminLayout>
+                    <Dashboard />
+                  </AdminLayout>
+                } />
+                <Route path="/tenants" element={
+                  <AdminLayout>
+                    <Tenants />
+                  </AdminLayout>
+                } />
+                <Route path="/users" element={
+                  <AdminLayout>
+                    <Users />
+                  </AdminLayout>
+                } />
+                <Route path="/channels" element={
+                  <AdminLayout>
+                    <Channels />
+                  </AdminLayout>
+                } />
+                <Route path="/chatbot" element={
+                  <AdminLayout>
+                    <ChatbotTuning />
+                  </AdminLayout>
+                } />
+                <Route path="/api-keys" element={
+                  <AdminLayout>
+                    <ApiKeys />
+                  </AdminLayout>
+                } />
+                <Route path="/database" element={
+                  <AdminLayout>
+                    <Database />
+                  </AdminLayout>
+                } />
+                <Route path="/integrations" element={
+                  <AdminLayout>
+                    <Integrations />
+                  </AdminLayout>
+                } />
+                <Route path="/webhooks" element={
+                  <AdminLayout>
+                    <Webhooks />
+                  </AdminLayout>
+                } />
+                <Route path="/settings" element={
+                  <AdminLayout>
+                    <Settings />
+                  </AdminLayout>
+                } />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </BrowserRouter>
+          </TooltipProvider>
+        </UserProvider>
+      </GlobalThemeProvider>
     </ThemeProvider>
   </QueryClientProvider>
 );
