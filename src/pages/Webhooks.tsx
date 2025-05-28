@@ -4,55 +4,65 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
-import { Plus, Webhook, Send, MoreHorizontal, Play, Pause } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Plus, Send, Settings, Activity, Clock, CheckCircle, XCircle } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
-interface WebhookEndpoint {
+interface Webhook {
   id: string;
   name: string;
   url: string;
   events: string[];
-  status: 'Active' | 'Inactive';
+  status: 'Active' | 'Inactive' | 'Failed';
   lastTriggered: string;
   successRate: number;
-  totalCalls: number;
 }
 
-const mockWebhooks: WebhookEndpoint[] = [
+const mockWebhooks: Webhook[] = [
   {
     id: '1',
-    name: 'Message Received',
-    url: 'https://api.example.com/webhook/message',
-    events: ['message.received', 'message.sent'],
+    name: 'User Registration Hook',
+    url: 'https://api.example.com/webhooks/user-registration',
+    events: ['user.created', 'user.verified'],
     status: 'Active',
     lastTriggered: '2024-01-15 14:30',
-    successRate: 98.5,
-    totalCalls: 1247
+    successRate: 98.5
   },
   {
     id: '2',
-    name: 'User Registration',
-    url: 'https://api.example.com/webhook/user',
-    events: ['user.created', 'user.updated'],
+    name: 'Chat Completion Hook',
+    url: 'https://api.example.com/webhooks/chat-complete',
+    events: ['chat.completed', 'chat.escalated'],
     status: 'Active',
     lastTriggered: '2024-01-15 12:15',
-    successRate: 100,
-    totalCalls: 89
+    successRate: 95.2
   },
   {
     id: '3',
-    name: 'Chat Session',
-    url: 'https://api.example.com/webhook/session',
-    events: ['session.started', 'session.ended'],
-    status: 'Inactive',
-    lastTriggered: '2024-01-10 16:20',
-    successRate: 87.2,
-    totalCalls: 456
+    name: 'Payment Processing',
+    url: 'https://api.example.com/webhooks/payment',
+    events: ['payment.success', 'payment.failed'],
+    status: 'Failed',
+    lastTriggered: '2024-01-14 16:45',
+    successRate: 87.3
   }
+];
+
+const availableEvents = [
+  'user.created',
+  'user.verified',
+  'user.deleted',
+  'chat.started',
+  'chat.completed',
+  'chat.escalated',
+  'payment.success',
+  'payment.failed',
+  'tenant.created',
+  'tenant.updated'
 ];
 
 export const Webhooks = () => {
@@ -61,37 +71,62 @@ export const Webhooks = () => {
   const [newWebhook, setNewWebhook] = useState({
     name: '',
     url: '',
-    events: [] as string[]
+    events: [] as string[],
+    retryCount: 3,
+    timeout: 30
   });
 
-  const toggleWebhookStatus = (webhookId: string) => {
-    setWebhooks(prev => prev.map(webhook => 
-      webhook.id === webhookId 
-        ? { ...webhook, status: webhook.status === 'Active' ? 'Inactive' : 'Active' }
-        : webhook
-    ));
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'Active':
+        return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100';
+      case 'Inactive':
+        return 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-100';
+      case 'Failed':
+        return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100';
+      default:
+        return '';
+    }
   };
 
   const handleAddWebhook = () => {
-    const webhook: WebhookEndpoint = {
-      id: Date.now().toString(),
+    if (!newWebhook.name || !newWebhook.url || newWebhook.events.length === 0) return;
+
+    const webhook: Webhook = {
+      id: (webhooks.length + 1).toString(),
       name: newWebhook.name,
       url: newWebhook.url,
       events: newWebhook.events,
       status: 'Active',
       lastTriggered: 'Never',
-      successRate: 0,
-      totalCalls: 0
+      successRate: 100
     };
 
-    setWebhooks(prev => [...prev, webhook]);
+    setWebhooks([...webhooks, webhook]);
+    setNewWebhook({ name: '', url: '', events: [], retryCount: 3, timeout: 30 });
     setIsAddModalOpen(false);
-    setNewWebhook({ name: '', url: '', events: [] });
   };
 
-  const testWebhook = (webhookId: string) => {
-    console.log('Testing webhook:', webhookId);
-    // In real implementation, this would send a test request
+  const handleEventToggle = (event: string) => {
+    setNewWebhook(prev => ({
+      ...prev,
+      events: prev.events.includes(event)
+        ? prev.events.filter(e => e !== event)
+        : [...prev.events, event]
+    }));
+  };
+
+  const toggleWebhookStatus = (id: string) => {
+    setWebhooks(prev => prev.map(webhook => 
+      webhook.id === id 
+        ? { ...webhook, status: webhook.status === 'Active' ? 'Inactive' : 'Active' as 'Active' | 'Inactive' | 'Failed' }
+        : webhook
+    ));
+  };
+
+  const testWebhook = (webhook: Webhook) => {
+    console.log('Testing webhook:', webhook.name);
+    // In real implementation, this would send a test payload
   };
 
   return (
@@ -100,7 +135,7 @@ export const Webhooks = () => {
         <div>
           <h1 className="text-3xl font-bold font-poppins">Webhooks</h1>
           <p className="text-muted-foreground mt-2">
-            Configure webhook endpoints for real-time event notifications
+            Manage webhook endpoints and event subscriptions
           </p>
         </div>
         
@@ -111,76 +146,90 @@ export const Webhooks = () => {
               Add Webhook
             </Button>
           </DialogTrigger>
-          <DialogContent className="glass">
+          <DialogContent className="glass max-w-2xl">
             <DialogHeader>
               <DialogTitle className="font-poppins">Add New Webhook</DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
-              <div>
-                <Label htmlFor="webhook-name">Webhook Name</Label>
-                <Input
-                  id="webhook-name"
-                  value={newWebhook.name}
-                  onChange={(e) => setNewWebhook(prev => ({ ...prev, name: e.target.value }))}
-                  placeholder="e.g., Message Handler"
-                />
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="webhook-name">Webhook Name</Label>
+                  <Input
+                    id="webhook-name"
+                    value={newWebhook.name}
+                    onChange={(e) => setNewWebhook(prev => ({ ...prev, name: e.target.value }))}
+                    placeholder="e.g., User Registration Hook"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="webhook-url">Endpoint URL</Label>
+                  <Input
+                    id="webhook-url"
+                    type="url"
+                    value={newWebhook.url}
+                    onChange={(e) => setNewWebhook(prev => ({ ...prev, url: e.target.value }))}
+                    placeholder="https://api.example.com/webhooks"
+                  />
+                </div>
               </div>
-              
+
               <div>
-                <Label htmlFor="webhook-url">Endpoint URL</Label>
-                <Input
-                  id="webhook-url"
-                  type="url"
-                  value={newWebhook.url}
-                  onChange={(e) => setNewWebhook(prev => ({ ...prev, url: e.target.value }))}
-                  placeholder="https://your-api.com/webhook"
-                />
-              </div>
-              
-              <div>
-                <Label>Events</Label>
-                <div className="grid grid-cols-2 gap-2 mt-2">
-                  {[
-                    'message.received',
-                    'message.sent',
-                    'user.created',
-                    'user.updated',
-                    'session.started',
-                    'session.ended'
-                  ].map((event) => (
-                    <label key={event} className="flex items-center space-x-2">
+                <Label>Event Subscriptions</Label>
+                <div className="grid grid-cols-2 gap-2 mt-2 max-h-40 overflow-y-auto">
+                  {availableEvents.map(event => (
+                    <div key={event} className="flex items-center space-x-2">
                       <input
                         type="checkbox"
+                        id={event}
                         checked={newWebhook.events.includes(event)}
-                        onChange={(e) => {
-                          if (e.target.checked) {
-                            setNewWebhook(prev => ({ 
-                              ...prev, 
-                              events: [...prev.events, event] 
-                            }));
-                          } else {
-                            setNewWebhook(prev => ({ 
-                              ...prev, 
-                              events: prev.events.filter(e => e !== event) 
-                            }));
-                          }
-                        }}
+                        onChange={() => handleEventToggle(event)}
+                        className="rounded border-border"
                       />
-                      <span className="text-sm">{event}</span>
-                    </label>
+                      <Label htmlFor={event} className="text-sm font-mono">
+                        {event}
+                      </Label>
+                    </div>
                   ))}
                 </div>
               </div>
-              
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="retry-count">Retry Count</Label>
+                  <Input
+                    id="retry-count"
+                    type="number"
+                    value={newWebhook.retryCount}
+                    onChange={(e) => setNewWebhook(prev => ({ ...prev, retryCount: parseInt(e.target.value) }))}
+                    min="0"
+                    max="10"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="timeout">Timeout (seconds)</Label>
+                  <Input
+                    id="timeout"
+                    type="number"
+                    value={newWebhook.timeout}
+                    onChange={(e) => setNewWebhook(prev => ({ ...prev, timeout: parseInt(e.target.value) }))}
+                    min="5"
+                    max="300"
+                  />
+                </div>
+              </div>
+
               <div className="flex justify-end space-x-2 pt-4">
-                <Button variant="outline" onClick={() => setIsAddModalOpen(false)}>
+                <Button 
+                  variant="outline" 
+                  onClick={() => setIsAddModalOpen(false)}
+                >
                   Cancel
                 </Button>
                 <Button 
                   onClick={handleAddWebhook}
-                  disabled={!newWebhook.name || !newWebhook.url || newWebhook.events.length === 0}
+                  className="bg-foreground text-background"
                 >
-                  Add Webhook
+                  Create Webhook
                 </Button>
               </div>
             </div>
@@ -194,7 +243,7 @@ export const Webhooks = () => {
             <CardTitle className="text-sm font-medium text-muted-foreground">
               Total Webhooks
             </CardTitle>
-            <Webhook className="w-4 h-4 text-muted-foreground" />
+            <Settings className="w-4 h-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold font-poppins">{webhooks.length}</div>
@@ -207,15 +256,16 @@ export const Webhooks = () => {
         <Card className="glass">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              Active
+              Active Webhooks
             </CardTitle>
+            <Activity className="w-4 h-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold font-poppins">
               {webhooks.filter(w => w.status === 'Active').length}
             </div>
             <p className="text-xs text-muted-foreground mt-1">
-              Currently enabled
+              Currently active
             </p>
           </CardContent>
         </Card>
@@ -223,15 +273,16 @@ export const Webhooks = () => {
         <Card className="glass">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              Total Calls
+              Failed Webhooks
             </CardTitle>
+            <XCircle className="w-4 h-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold font-poppins">
-              {webhooks.reduce((sum, w) => sum + w.totalCalls, 0).toLocaleString()}
+              {webhooks.filter(w => w.status === 'Failed').length}
             </div>
             <p className="text-xs text-muted-foreground mt-1">
-              All time
+              Need attention
             </p>
           </CardContent>
         </Card>
@@ -239,15 +290,16 @@ export const Webhooks = () => {
         <Card className="glass">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              Success Rate
+              Avg Success Rate
             </CardTitle>
+            <CheckCircle className="w-4 h-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold font-poppins">
-              {Math.round(webhooks.reduce((sum, w) => sum + w.successRate, 0) / webhooks.length)}%
+              {(webhooks.reduce((acc, w) => acc + w.successRate, 0) / webhooks.length).toFixed(1)}%
             </div>
             <p className="text-xs text-muted-foreground mt-1">
-              Average success
+              Delivery success
             </p>
           </CardContent>
         </Card>
@@ -274,14 +326,12 @@ export const Webhooks = () => {
               {webhooks.map((webhook) => (
                 <TableRow key={webhook.id} className="hover:bg-muted/30">
                   <TableCell className="font-medium">{webhook.name}</TableCell>
-                  <TableCell>
-                    <code className="text-xs bg-muted px-2 py-1 rounded">
-                      {webhook.url}
-                    </code>
+                  <TableCell className="font-mono text-sm text-muted-foreground max-w-xs truncate">
+                    {webhook.url}
                   </TableCell>
                   <TableCell>
                     <div className="flex flex-wrap gap-1">
-                      {webhook.events.slice(0, 2).map((event) => (
+                      {webhook.events.slice(0, 2).map(event => (
                         <Badge key={event} variant="outline" className="text-xs">
                           {event}
                         </Badge>
@@ -294,49 +344,36 @@ export const Webhooks = () => {
                     </div>
                   </TableCell>
                   <TableCell>
-                    <div className="flex items-center space-x-2">
-                      <Badge 
-                        variant={webhook.status === 'Active' ? 'default' : 'secondary'}
-                        className={webhook.status === 'Active' ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100' : ''}
-                      >
-                        {webhook.status}
-                      </Badge>
-                      <Switch
-                        checked={webhook.status === 'Active'}
-                        onCheckedChange={() => toggleWebhookStatus(webhook.id)}
-                        size="sm"
-                      />
-                    </div>
+                    <Badge className={getStatusColor(webhook.status)}>
+                      {webhook.status}
+                    </Badge>
                   </TableCell>
                   <TableCell>
-                    <span className={webhook.successRate >= 95 ? 'text-green-600' : 'text-yellow-600'}>
-                      {webhook.successRate}%
-                    </span>
+                    <div className="flex items-center space-x-2">
+                      <div className="w-16 bg-muted rounded-full h-2">
+                        <div 
+                          className="h-2 rounded-full bg-foreground" 
+                          style={{ width: `${webhook.successRate}%` }}
+                        />
+                      </div>
+                      <span className="text-sm">{webhook.successRate}%</span>
+                    </div>
                   </TableCell>
                   <TableCell className="text-muted-foreground">{webhook.lastTriggered}</TableCell>
                   <TableCell>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="sm">
-                          <MoreHorizontal className="w-4 h-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="glass">
-                        <DropdownMenuItem onClick={() => testWebhook(webhook.id)}>
-                          <Send className="w-4 h-4 mr-2" />
-                          Test Webhook
-                        </DropdownMenuItem>
-                        <DropdownMenuItem>
-                          Edit
-                        </DropdownMenuItem>
-                        <DropdownMenuItem>
-                          View Logs
-                        </DropdownMenuItem>
-                        <DropdownMenuItem className="text-destructive">
-                          Delete
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                    <div className="flex items-center space-x-2">
+                      <Switch
+                        checked={webhook.status === 'Active'}
+                        onCheckedChange={() => toggleWebhookStatus(webhook.id)}
+                      />
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => testWebhook(webhook)}
+                      >
+                        <Send className="w-4 h-4" />
+                      </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}
