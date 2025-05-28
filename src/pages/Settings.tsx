@@ -9,6 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { Settings as SettingsIcon, Bell, Shield, Database, Globe } from 'lucide-react';
+import { ThemeCustomization } from '@/components/Settings/ThemeCustomization';
 
 export const Settings = () => {
   const [settings, setSettings] = useState({
@@ -42,6 +43,9 @@ export const Settings = () => {
           Configure your platform settings and preferences
         </p>
       </div>
+
+      {/* Theme Customization - New Section */}
+      <ThemeCustomization />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* General Settings */}
