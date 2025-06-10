@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -8,6 +9,7 @@ import { GlobalThemeProvider } from "@/contexts/GlobalThemeContext";
 import { UserProvider } from "@/contexts/UserContext";
 import { AdminLayout } from "@/components/Layout/AdminLayout";
 import { Dashboard } from "@/pages/Dashboard";
+import { Analytics } from "@/pages/Analytics";
 import { Tenants } from "@/pages/Tenants";
 import { Users } from "@/pages/Users";
 import { Channels } from "@/pages/Channels";
@@ -36,6 +38,11 @@ const App = () => (
                 <Route path="/" element={
                   <AdminLayout>
                     <Dashboard />
+                  </AdminLayout>
+                } />
+                <Route path="/analytics" element={
+                  <AdminLayout>
+                    <Analytics />
                   </AdminLayout>
                 } />
                 <Route path="/social-media" element={

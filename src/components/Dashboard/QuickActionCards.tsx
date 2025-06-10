@@ -103,8 +103,8 @@ export const QuickActionCards = () => {
       title: 'Chatbot',
       description: 'Manage and customize your AI chatbot for customer engagement',
       icon: Bot,
-      color: 'text-orange-600',
-      bgColor: 'bg-orange-100',
+      color: 'text-indigo-600',
+      bgColor: 'bg-indigo-100',
       stats: '89% satisfaction',
       buttonText: 'Configure Bot'
     },
