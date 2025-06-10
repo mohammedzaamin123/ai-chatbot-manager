@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -10,6 +9,8 @@ import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
+import { CollectionSelector } from '@/components/Database/CollectionSelector';
+import { RoleAssignmentManager } from '@/components/UserManagement/RoleAssignmentManager';
 import { 
   Bot, 
   Send, 
@@ -35,6 +36,7 @@ export const ChatbotTuning = () => {
   
   // Database Configuration
   const [selectedDatabase, setSelectedDatabase] = useState('mongodb-support');
+  const [selectedCollections, setSelectedCollections] = useState<string[]>([]);
   const [testQuery, setTestQuery] = useState('');
   const [queryResults, setQueryResults] = useState('');
 
@@ -134,6 +136,11 @@ Sample data:
     toast.success('Chatbot deployed successfully! Integration code generated.');
   };
 
+  const handleCollectionSelect = (collections: string[]) => {
+    setSelectedCollections(collections);
+    toast.success(`Selected ${collections.length} collection(s)`);
+  };
+
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="flex justify-between items-center">
@@ -184,7 +191,7 @@ Sample data:
         </TabsList>
 
         <TabsContent value="database" className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 gap-6">
             <Card className="glass">
               <CardHeader>
                 <CardTitle className="font-poppins flex items-center">
@@ -200,26 +207,26 @@ Sample data:
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      {databases.map((db) => (
-                        <SelectItem key={db.id} value={db.id}>
-                          <div>
-                            <div className="font-medium">{db.name}</div>
-                            <div className="text-sm text-muted-foreground">{db.schema}</div>
-                          </div>
-                        </SelectItem>
-                      ))}
+                      <SelectItem value="mongodb-support">
+                        <div>
+                          <div className="font-medium">MongoDB - Support Database</div>
+                          <div className="text-sm text-muted-foreground">5 collections, 12,450 documents</div>
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="postgresql-products">
+                        <div>
+                          <div className="font-medium">PostgreSQL - Products Database</div>
+                          <div className="text-sm text-muted-foreground">8 tables, 3,200 rows</div>
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="mysql-users">
+                        <div>
+                          <div className="font-medium">MySQL - User Database</div>
+                          <div className="text-sm text-muted-foreground">12 tables, 45,600 rows</div>
+                        </div>
+                      </SelectItem>
                     </SelectContent>
                   </Select>
-                </div>
-
-                <div className="p-4 bg-muted/20 rounded-lg">
-                  <h4 className="font-medium mb-2">Database Schema Preview</h4>
-                  <div className="text-sm text-muted-foreground space-y-1">
-                    <div>• Collections: users, tickets, products, orders, logs</div>
-                    <div>• Total Documents: 12,450</div>
-                    <div>• Last Updated: 2 minutes ago</div>
-                    <div>• Connection Status: <Badge className="bg-green-100 text-green-800">Connected</Badge></div>
-                  </div>
                 </div>
 
                 <Button variant="outline" className="w-full">
@@ -228,6 +235,50 @@ Sample data:
                 </Button>
               </CardContent>
             </Card>
+
+            <CollectionSelector 
+              selectedDatabase={selectedDatabase}
+              onCollectionSelect={handleCollectionSelect}
+            />
+
+            {selectedCollections.length > 0 && (
+              <Card className="glass">
+                <CardHeader>
+                  <CardTitle className="font-poppins">Custom Chatbot Configuration</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <Label>Chatbot Name</Label>
+                    <Input placeholder="e.g., Support Assistant, Product Helper" />
+                  </div>
+                  
+                  <div>
+                    <Label>Collections Access</Label>
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      {selectedCollections.map((collection) => (
+                        <Badge key={collection} className="bg-blue-100 text-blue-800">
+                          {collection}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="chatbot-description">Chatbot Description</Label>
+                    <Textarea
+                      id="chatbot-description"
+                      placeholder="Describe what this chatbot should help users with..."
+                      rows={3}
+                    />
+                  </div>
+
+                  <Button className="w-full">
+                    <Bot className="w-4 h-4 mr-2" />
+                    Create Custom Chatbot
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
 
             <Card className="glass">
               <CardHeader>
@@ -262,72 +313,7 @@ Sample data:
         </TabsContent>
 
         <TabsContent value="permissions" className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card className="glass">
-              <CardHeader>
-                <CardTitle className="font-poppins flex items-center">
-                  <Shield className="w-5 h-5 mr-2" />
-                  Database Permissions
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {Object.entries(permissions).map(([perm, enabled]) => (
-                  <div key={perm} className="flex items-center justify-between">
-                    <div>
-                      <Label className="capitalize">{perm} Access</Label>
-                      <p className="text-sm text-muted-foreground">
-                        {perm === 'read' && 'View database records and information'}
-                        {perm === 'write' && 'Modify and update existing records'}
-                        {perm === 'delete' && 'Remove records from database'}
-                        {perm === 'custom' && 'Define custom permission rules'}
-                      </p>
-                    </div>
-                    <Switch
-                      checked={enabled}
-                      onCheckedChange={(checked) => setPermissions(prev => ({ ...prev, [perm]: checked }))}
-                    />
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
-
-            <Card className="glass">
-              <CardHeader>
-                <CardTitle className="font-poppins flex items-center">
-                  <Users className="w-5 h-5 mr-2" />
-                  Role Assignments
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {roleAssignments.map((assignment) => (
-                  <div key={assignment.role} className="p-4 border border-border rounded-lg">
-                    <div className="flex justify-between items-start mb-2">
-                      <h4 className="font-medium">{assignment.role}</h4>
-                      <Button variant="outline" size="sm">Edit</Button>
-                    </div>
-                    <div className="space-y-2">
-                      <div>
-                        <span className="text-sm text-muted-foreground">Users: </span>
-                        <span className="text-sm">{assignment.users.join(', ')}</span>
-                      </div>
-                      <div className="flex space-x-1">
-                        {assignment.permissions.map((perm) => (
-                          <Badge key={perm} variant="outline" className="text-xs">
-                            {perm}
-                          </Badge>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-                
-                <Button variant="outline" className="w-full">
-                  <Users className="w-4 h-4 mr-2" />
-                  Add New Role
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
+          <RoleAssignmentManager />
         </TabsContent>
 
         <TabsContent value="ai-config" className="space-y-6">

@@ -18,6 +18,7 @@ import { ContentHub } from '@/pages/ContentHub';
 import { ChatbotTuning } from '@/pages/ChatbotTuning';
 import { ManageChatbots } from '@/pages/ManageChatbots';
 import { Integrations } from '@/pages/Integrations';
+import { GetStarted } from '@/pages/GetStarted';
 import NotFound from '@/pages/NotFound';
 import { Toaster } from '@/components/ui/sonner';
 import './App.css';
@@ -33,6 +34,7 @@ function App() {
             <AdminLayout>
               <Routes>
                 <Route path="/" element={<Dashboard />} />
+                <Route path="/get-started" element={<GetStarted />} />
                 <Route path="/users" element={<Users />} />
                 <Route path="/tenants" element={<Tenants />} />
                 <Route path="/database" element={<Database />} />

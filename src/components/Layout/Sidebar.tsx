@@ -20,18 +20,26 @@ import {
   ChevronRight,
   Shield,
   Palette,
-  Code
+  Code,
+  Rocket,
+  PlayCircle
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Badge } from '@/components/ui/badge';
 
 interface SidebarProps {
   collapsed: boolean;
   onToggle: () => void;
 }
 
-// Platform Management items (moved to top)
-const platformItems = [
+// Quick Start section (first)
+const quickStartItems = [
+  { icon: Rocket, label: 'Get Started', path: '/get-started', isNew: true },
   { icon: LayoutDashboard, label: 'Dashboard', path: '/' },
+];
+
+// Platform Management items
+const platformItems = [
   { icon: Users, label: 'Tenants', path: '/tenants' },
   { icon: User, label: 'Users & Roles', path: '/users' },
   { icon: Database, label: 'Database', path: '/database' },
@@ -41,15 +49,15 @@ const platformItems = [
   { icon: Webhook, label: 'Webhooks', path: '/webhooks' },
 ];
 
-// Chatbot & AI related items (second section)
+// Chatbot & AI related items
 const chatbotItems = [
-  { icon: Bot, label: 'Create Chatbot', path: '/chatbot' },
+  { icon: Bot, label: 'Create Chatbot', path: '/chatbot', isPopular: true },
   { icon: Bot, label: 'Manage Chatbots', path: '/manage-chatbots' },
   { icon: MessageSquare, label: 'Messages', path: '/messages' },
   { icon: BarChart3, label: 'Analytics', path: '/analytics' },
 ];
 
-// Content Management items (third section)
+// Content Management items
 const contentItems = [
   { icon: Calendar, label: 'Social Media', path: '/social-media' },
   { icon: FileText, label: 'Content Hub', path: '/content-hub' },
@@ -76,7 +84,7 @@ export const Sidebar = ({ collapsed, onToggle }: SidebarProps) => {
 
   const isSettingsPage = location.pathname === '/settings';
 
-  const renderMenuSection = (items: any[], sectionTitle: string) => (
+  const renderMenuSection = (items: any[], sectionTitle: string, showBadges: boolean = false) => (
     <div className="space-y-1">
       {!collapsed && (
         <div className="px-3 py-2">
@@ -107,7 +115,23 @@ export const Sidebar = ({ collapsed, onToggle }: SidebarProps) => {
               isActive && "text-white"
             )} />
             {!collapsed && (
-              <span className="ml-3 truncate">{item.label}</span>
+              <div className="flex items-center justify-between w-full ml-3">
+                <span className="truncate">{item.label}</span>
+                {showBadges && (
+                  <div className="flex items-center space-x-1">
+                    {item.isNew && (
+                      <Badge className="bg-green-500 text-white text-xs px-2 py-0">
+                        New
+                      </Badge>
+                    )}
+                    {item.isPopular && (
+                      <Badge className="bg-orange-500 text-white text-xs px-2 py-0">
+                        Popular
+                      </Badge>
+                    )}
+                  </div>
+                )}
+              </div>
             )}
             {isActive && (
               <div className="absolute right-2 w-2 h-2 bg-white rounded-full opacity-80"></div>
@@ -145,13 +169,16 @@ export const Sidebar = ({ collapsed, onToggle }: SidebarProps) => {
 
         {/* Navigation */}
         <nav className="flex-1 p-3 space-y-4 overflow-y-auto">
-          {/* Platform Management Section (first) */}
+          {/* Quick Start Section (first) */}
+          {renderMenuSection(quickStartItems, "Quick Start", true)}
+          
+          {/* Platform Management Section */}
           {renderMenuSection(platformItems, "Platform")}
           
-          {/* Chatbot & AI Section (second) */}
-          {renderMenuSection(chatbotItems, "Chatbot & AI")}
+          {/* Chatbot & AI Section */}
+          {renderMenuSection(chatbotItems, "Chatbot & AI", true)}
           
-          {/* Content Management Section (third) */}
+          {/* Content Management Section */}
           {renderMenuSection(contentItems, "Content Management")}
 
           {/* Settings with Sub-menu (last) */}
@@ -225,6 +252,20 @@ export const Sidebar = ({ collapsed, onToggle }: SidebarProps) => {
             </div>
           </div>
         </nav>
+
+        {/* Quick Actions (when not collapsed) */}
+        {!collapsed && (
+          <div className="p-3 border-t border-blue-100 dark:border-blue-900/50">
+            <div className="space-y-2">
+              <Link to="/chatbot">
+                <button className="w-full flex items-center justify-center py-2 px-3 rounded-xl bg-gradient-to-r from-blue-500 to-purple-500 text-white hover:from-blue-600 hover:to-purple-600 transition-all duration-200 text-sm font-medium">
+                  <PlayCircle className="w-4 h-4 mr-2" />
+                  Create Chatbot
+                </button>
+              </Link>
+            </div>
+          </div>
+        )}
 
         {/* Collapse Button */}
         <div className="p-3 border-t border-blue-100 dark:border-blue-900/50">
