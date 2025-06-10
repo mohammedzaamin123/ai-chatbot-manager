@@ -16,7 +16,7 @@ import { ContentHub } from '@/pages/ContentHub';
 import { ChatbotTuning } from '@/pages/ChatbotTuning';
 import { AIConfig } from '@/pages/AIConfig';
 import { Integrations } from '@/pages/Integrations';
-import { NotFound } from '@/pages/NotFound';
+import NotFound from '@/pages/NotFound';
 import { Toaster } from '@/components/ui/sonner';
 import './App.css';
 
