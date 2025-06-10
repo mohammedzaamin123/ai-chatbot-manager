@@ -4,60 +4,136 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Database as DatabaseIcon, Search, ChevronRight, ChevronDown, Table, FileText } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Database as DatabaseIcon, Search, ChevronRight, ChevronDown, Table, FileText, Building } from 'lucide-react';
 
 interface DatabaseCollection {
   name: string;
   documents: number;
   size: string;
   expanded?: boolean;
+  tenant: string;
 }
 
 const mockCollections: DatabaseCollection[] = [
-  { name: 'users', documents: 1247, size: '2.3 MB' },
-  { name: 'conversations', documents: 8941, size: '45.2 MB' },
-  { name: 'messages', documents: 127834, size: '342.8 MB' },
-  { name: 'templates', documents: 23, size: '128 KB' },
-  { name: 'settings', documents: 12, size: '45 KB' }
+  { name: 'users', documents: 1247, size: '2.3 MB', tenant: 'Acme Corp' },
+  { name: 'conversations', documents: 8941, size: '45.2 MB', tenant: 'Acme Corp' },
+  { name: 'messages', documents: 127834, size: '342.8 MB', tenant: 'Acme Corp' },
+  { name: 'users', documents: 567, size: '1.2 MB', tenant: 'TechStart Inc' },
+  { name: 'conversations', documents: 3421, size: '18.7 MB', tenant: 'TechStart Inc' },
+  { name: 'messages', documents: 45632, size: '128.4 MB', tenant: 'TechStart Inc' },
+  { name: 'users', documents: 234, size: '512 KB', tenant: 'RetailPlus' },
+  { name: 'conversations', documents: 1876, size: '9.3 MB', tenant: 'RetailPlus' },
+  { name: 'templates', documents: 23, size: '128 KB', tenant: 'Global' },
+  { name: 'settings', documents: 12, size: '45 KB', tenant: 'Global' }
 ];
+
+const tenants = ['All Tenants', 'Acme Corp', 'TechStart Inc', 'RetailPlus', 'Global'];
 
 export const Database = () => {
   const [collections, setCollections] = useState(mockCollections);
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedTenant, setSelectedTenant] = useState('All Tenants');
 
-  const toggleCollection = (collectionName: string) => {
+  const toggleCollection = (collectionName: string, tenant: string) => {
     setCollections(prev => prev.map(col => 
-      col.name === collectionName 
+      col.name === collectionName && col.tenant === tenant 
         ? { ...col, expanded: !col.expanded }
         : col
     ));
   };
 
-  const filteredCollections = collections.filter(col =>
-    col.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredCollections = collections.filter(col => {
+    const matchesSearch = col.name.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesTenant = selectedTenant === 'All Tenants' || col.tenant === selectedTenant;
+    return matchesSearch && matchesTenant;
+  });
+
+  const getTenantStats = (tenant: string) => {
+    const tenantCollections = collections.filter(col => col.tenant === tenant);
+    return {
+      collections: tenantCollections.length,
+      documents: tenantCollections.reduce((sum, col) => sum + col.documents, 0),
+      size: tenantCollections.reduce((sum, col) => {
+        const sizeInMB = parseFloat(col.size.replace(/[^\d.]/g, ''));
+        const unit = col.size.includes('KB') ? 0.001 : col.size.includes('GB') ? 1000 : 1;
+        return sum + (sizeInMB * unit);
+      }, 0).toFixed(1) + ' MB'
+    };
+  };
 
   return (
     <div className="space-y-6 animate-fade-in">
-      <div>
-        <h1 className="text-3xl font-bold font-poppins">Database</h1>
-        <p className="text-muted-foreground mt-2">
-          Monitor database collections and performance
-        </p>
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold font-poppins">Database Management</h1>
+          <p className="text-muted-foreground mt-2">
+            Monitor database collections and performance across tenants
+          </p>
+        </div>
+        
+        <Select value={selectedTenant} onValueChange={setSelectedTenant}>
+          <SelectTrigger className="w-48">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {tenants.map((tenant) => (
+              <SelectItem key={tenant} value={tenant}>
+                {tenant}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
+      {/* Tenant-specific Stats */}
+      {selectedTenant !== 'All Tenants' && (
+        <Card className="glass border-l-4 border-l-blue-500">
+          <CardHeader>
+            <CardTitle className="font-poppins flex items-center">
+              <Building className="w-5 h-5 mr-2" />
+              {selectedTenant} Database Overview
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {(() => {
+                const stats = getTenantStats(selectedTenant);
+                return (
+                  <>
+                    <div className="text-center">
+                      <div className="text-2xl font-bold font-poppins">{stats.collections}</div>
+                      <div className="text-sm text-muted-foreground">Collections</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-2xl font-bold font-poppins">{stats.documents.toLocaleString()}</div>
+                      <div className="text-sm text-muted-foreground">Documents</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-2xl font-bold font-poppins">{stats.size}</div>
+                      <div className="text-sm text-muted-foreground">Storage Used</div>
+                    </div>
+                  </>
+                );
+              })()}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Global Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <Card className="glass">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              Collections
+              Total Collections
             </CardTitle>
             <DatabaseIcon className="w-4 h-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold font-poppins">{collections.length}</div>
+            <div className="text-2xl font-bold font-poppins">{filteredCollections.length}</div>
             <p className="text-xs text-muted-foreground mt-1">
-              Total collections
+              {selectedTenant === 'All Tenants' ? 'Across all tenants' : `In ${selectedTenant}`}
             </p>
           </CardContent>
         </Card>
@@ -65,15 +141,15 @@ export const Database = () => {
         <Card className="glass">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              Documents
+              Total Documents
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold font-poppins">
-              {collections.reduce((sum, col) => sum + col.documents, 0).toLocaleString()}
+              {filteredCollections.reduce((sum, col) => sum + col.documents, 0).toLocaleString()}
             </div>
             <p className="text-xs text-muted-foreground mt-1">
-              Total documents
+              Active documents
             </p>
           </CardContent>
         </Card>
@@ -81,13 +157,15 @@ export const Database = () => {
         <Card className="glass">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              Storage Used
+              Active Tenants
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold font-poppins">390.5 MB</div>
+            <div className="text-2xl font-bold font-poppins">
+              {[...new Set(filteredCollections.map(col => col.tenant))].length}
+            </div>
             <p className="text-xs text-muted-foreground mt-1">
-              Total size
+              With databases
             </p>
           </CardContent>
         </Card>
@@ -95,22 +173,23 @@ export const Database = () => {
         <Card className="glass">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              Status
+              Health Status
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold font-poppins text-green-600">Online</div>
+            <div className="text-2xl font-bold font-poppins text-green-600">Healthy</div>
             <p className="text-xs text-muted-foreground mt-1">
-              Database health
+              All databases
             </p>
           </CardContent>
         </Card>
       </div>
 
+      {/* Collections Table */}
       <Card className="glass">
         <CardHeader>
           <div className="flex justify-between items-center">
-            <CardTitle className="font-poppins">Collections</CardTitle>
+            <CardTitle className="font-poppins">Database Collections</CardTitle>
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
               <Input
@@ -124,11 +203,11 @@ export const Database = () => {
         </CardHeader>
         <CardContent>
           <div className="space-y-2">
-            {filteredCollections.map((collection) => (
-              <div key={collection.name} className="border rounded-lg">
+            {filteredCollections.map((collection, index) => (
+              <div key={`${collection.name}-${collection.tenant}-${index}`} className="border rounded-lg">
                 <div 
                   className="flex items-center justify-between p-4 cursor-pointer hover:bg-muted/30 transition-colors"
-                  onClick={() => toggleCollection(collection.name)}
+                  onClick={() => toggleCollection(collection.name, collection.tenant)}
                 >
                   <div className="flex items-center space-x-3">
                     {collection.expanded ? 
@@ -137,7 +216,12 @@ export const Database = () => {
                     }
                     <Table className="w-5 h-5 text-muted-foreground" />
                     <div>
-                      <h3 className="font-medium">{collection.name}</h3>
+                      <div className="flex items-center space-x-2">
+                        <h3 className="font-medium">{collection.name}</h3>
+                        <Badge variant="outline" className="text-xs">
+                          {collection.tenant}
+                        </Badge>
+                      </div>
                       <p className="text-sm text-muted-foreground">
                         {collection.documents.toLocaleString()} documents
                       </p>
@@ -170,6 +254,7 @@ export const Database = () => {
                         <h4 className="font-medium mb-2">Indexes</h4>
                         <div className="space-y-1">
                           <Badge variant="outline" className="text-xs">_id</Badge>
+                          <Badge variant="outline" className="text-xs">tenant_id</Badge>
                           <Badge variant="outline" className="text-xs">createdAt</Badge>
                         </div>
                       </div>
@@ -182,6 +267,9 @@ export const Database = () => {
                           </Button>
                           <Button variant="outline" size="sm" className="w-full text-xs">
                             View Schema
+                          </Button>
+                          <Button variant="outline" size="sm" className="w-full text-xs">
+                            Backup Data
                           </Button>
                         </div>
                       </div>

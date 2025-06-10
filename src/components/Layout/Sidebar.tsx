@@ -29,18 +29,28 @@ interface SidebarProps {
   onToggle: () => void;
 }
 
-const menuItems = [
-  { icon: LayoutDashboard, label: 'Dashboard', path: '/' },
+// Chatbot & AI related items at the top
+const chatbotItems = [
+  { icon: Bot, label: 'Chatbot', path: '/chatbot' },
+  { icon: Bot, label: 'AI Configuration', path: '/ai-config' },
+  { icon: MessageSquare, label: 'Messages', path: '/messages' },
+  { icon: BarChart3, label: 'Analytics', path: '/analytics' },
+];
+
+// AI Content Management items
+const contentItems = [
   { icon: Calendar, label: 'Social Media', path: '/social-media' },
   { icon: FileText, label: 'Content Hub', path: '/content-hub' },
-  { icon: BarChart3, label: 'Analytics', path: '/analytics' },
-  { icon: MessageSquare, label: 'Messages', path: '/messages' },
-  { icon: Bot, label: 'Chatbot', path: '/chatbot' },
+];
+
+// Platform Management items
+const platformItems = [
+  { icon: LayoutDashboard, label: 'Dashboard', path: '/' },
   { icon: Users, label: 'Tenants', path: '/tenants' },
   { icon: User, label: 'Users & Roles', path: '/users' },
+  { icon: Database, label: 'Database', path: '/database' },
   { icon: Search, label: 'Channels', path: '/channels' },
   { icon: Key, label: 'API Keys', path: '/api-keys' },
-  { icon: Database, label: 'Database', path: '/database' },
   { icon: Puzzle, label: 'Integrations', path: '/integrations' },
   { icon: Webhook, label: 'Webhooks', path: '/webhooks' },
 ];
@@ -65,6 +75,48 @@ export const Sidebar = ({ collapsed, onToggle }: SidebarProps) => {
   };
 
   const isSettingsPage = location.pathname === '/settings';
+
+  const renderMenuSection = (items: any[], sectionTitle: string) => (
+    <div className="space-y-1">
+      {!collapsed && (
+        <div className="px-3 py-2">
+          <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+            {sectionTitle}
+          </h3>
+        </div>
+      )}
+      {items.map((item) => {
+        const Icon = item.icon;
+        const isActive = location.pathname === item.path;
+        
+        return (
+          <Link
+            key={item.path}
+            to={item.path}
+            className={cn(
+              "flex items-center px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 group relative",
+              isActive
+                ? "bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-lg"
+                : "text-gray-700 dark:text-gray-300 hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 dark:hover:from-blue-950/50 dark:hover:to-purple-950/50 hover:text-blue-700 dark:hover:text-blue-300",
+              collapsed && "justify-center"
+            )}
+            title={collapsed ? item.label : undefined}
+          >
+            <Icon className={cn(
+              "w-5 h-5 flex-shrink-0 transition-transform group-hover:scale-110",
+              isActive && "text-white"
+            )} />
+            {!collapsed && (
+              <span className="ml-3 truncate">{item.label}</span>
+            )}
+            {isActive && (
+              <div className="absolute right-2 w-2 h-2 bg-white rounded-full opacity-80"></div>
+            )}
+          </Link>
+        );
+      })}
+    </div>
+  );
 
   return (
     <div className={cn(
@@ -92,97 +144,85 @@ export const Sidebar = ({ collapsed, onToggle }: SidebarProps) => {
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
-          {menuItems.map((item) => {
-            const Icon = item.icon;
-            const isActive = location.pathname === item.path;
+        <nav className="flex-1 p-3 space-y-4 overflow-y-auto">
+          {/* Chatbot & AI Section */}
+          {renderMenuSection(chatbotItems, "Chatbot & AI")}
+          
+          {/* AI Content Management Section */}
+          {renderMenuSection(contentItems, "Content Management")}
+          
+          {/* Platform Management Section */}
+          {renderMenuSection(platformItems, "Platform")}
+
+          {/* Settings with Sub-menu */}
+          <div className="space-y-1">
+            {!collapsed && (
+              <div className="px-3 py-2">
+                <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                  Configuration
+                </h3>
+              </div>
+            )}
             
-            return (
-              <Link
-                key={item.path}
-                to={item.path}
+            <div>
+              <button
+                onClick={handleSettingsClick}
                 className={cn(
-                  "flex items-center px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 group relative",
-                  isActive
+                  "w-full flex items-center px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 group relative",
+                  isSettingsPage
                     ? "bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-lg"
                     : "text-gray-700 dark:text-gray-300 hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 dark:hover:from-blue-950/50 dark:hover:to-purple-950/50 hover:text-blue-700 dark:hover:text-blue-300",
                   collapsed && "justify-center"
                 )}
-                title={collapsed ? item.label : undefined}
+                title={collapsed ? "Settings" : undefined}
               >
-                <Icon className={cn(
+                <Settings className={cn(
                   "w-5 h-5 flex-shrink-0 transition-transform group-hover:scale-110",
-                  isActive && "text-white"
+                  isSettingsPage && "text-white"
                 )} />
                 {!collapsed && (
-                  <span className="ml-3 truncate">{item.label}</span>
+                  <>
+                    <span className="ml-3 truncate">Settings</span>
+                    {settingsExpanded ? (
+                      <ChevronDown className="w-4 h-4 ml-auto" />
+                    ) : (
+                      <ChevronRight className="w-4 h-4 ml-auto" />
+                    )}
+                  </>
                 )}
-                {isActive && (
+                {isSettingsPage && (
                   <div className="absolute right-2 w-2 h-2 bg-white rounded-full opacity-80"></div>
                 )}
-              </Link>
-            );
-          })}
+              </button>
 
-          {/* Settings with Sub-menu */}
-          <div>
-            <button
-              onClick={handleSettingsClick}
-              className={cn(
-                "w-full flex items-center px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 group relative",
-                isSettingsPage
-                  ? "bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-lg"
-                  : "text-gray-700 dark:text-gray-300 hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 dark:hover:from-blue-950/50 dark:hover:to-purple-950/50 hover:text-blue-700 dark:hover:text-blue-300",
-                collapsed && "justify-center"
+              {/* Settings Sub-menu */}
+              {!collapsed && settingsExpanded && (
+                <div className="ml-6 mt-1 space-y-1">
+                  {settingsSubItems.map((subItem) => {
+                    const SubIcon = subItem.icon;
+                    const searchParams = new URLSearchParams(location.search);
+                    const currentTab = searchParams.get('tab') || 'general';
+                    const isSubActive = location.pathname === subItem.path && currentTab === subItem.tabValue;
+                    
+                    return (
+                      <Link
+                        key={subItem.tabValue}
+                        to={`${subItem.path}?tab=${subItem.tabValue}`}
+                        className={cn(
+                          "flex items-center px-3 py-2 rounded-lg text-xs font-medium transition-all duration-200 group",
+                          isSubActive
+                            ? "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300"
+                            : "text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-800 dark:hover:text-gray-200"
+                        )}
+                      >
+                        <SubIcon className="w-4 h-4 flex-shrink-0" />
+                        <span className="ml-2 truncate">{subItem.label}</span>
+                      </Link>
+                    );
+                  })}
+                </div>
               )}
-              title={collapsed ? "Settings" : undefined}
-            >
-              <Settings className={cn(
-                "w-5 h-5 flex-shrink-0 transition-transform group-hover:scale-110",
-                isSettingsPage && "text-white"
-              )} />
-              {!collapsed && (
-                <>
-                  <span className="ml-3 truncate">Settings</span>
-                  {settingsExpanded ? (
-                    <ChevronDown className="w-4 h-4 ml-auto" />
-                  ) : (
-                    <ChevronRight className="w-4 h-4 ml-auto" />
-                  )}
-                </>
-              )}
-              {isSettingsPage && (
-                <div className="absolute right-2 w-2 h-2 bg-white rounded-full opacity-80"></div>
-              )}
-            </button>
-
-            {/* Settings Sub-menu */}
-            {!collapsed && settingsExpanded && (
-              <div className="ml-6 mt-1 space-y-1">
-                {settingsSubItems.map((subItem) => {
-                  const SubIcon = subItem.icon;
-                  const searchParams = new URLSearchParams(location.search);
-                  const currentTab = searchParams.get('tab') || 'general';
-                  const isSubActive = location.pathname === subItem.path && currentTab === subItem.tabValue;
-                  
-                  return (
-                    <Link
-                      key={subItem.tabValue}
-                      to={`${subItem.path}?tab=${subItem.tabValue}`}
-                      className={cn(
-                        "flex items-center px-3 py-2 rounded-lg text-xs font-medium transition-all duration-200 group",
-                        isSubActive
-                          ? "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300"
-                          : "text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-800 dark:hover:text-gray-200"
-                      )}
-                    >
-                      <SubIcon className="w-4 h-4 flex-shrink-0" />
-                      <span className="ml-2 truncate">{subItem.label}</span>
-                    </Link>
-                  );
-                })}
-              </div>
-            )}
+            </div>
           </div>
         </nav>
 
