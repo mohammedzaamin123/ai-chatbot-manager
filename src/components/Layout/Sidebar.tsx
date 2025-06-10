@@ -43,8 +43,8 @@ const platformItems = [
 
 // Chatbot & AI related items (second section)
 const chatbotItems = [
-  { icon: Bot, label: 'Chatbot', path: '/chatbot' },
-  { icon: Bot, label: 'AI Configuration', path: '/ai-config' },
+  { icon: Bot, label: 'Create Chatbot', path: '/chatbot' },
+  { icon: Bot, label: 'Manage Chatbots', path: '/manage-chatbots' },
   { icon: MessageSquare, label: 'Messages', path: '/messages' },
   { icon: BarChart3, label: 'Analytics', path: '/analytics' },
 ];

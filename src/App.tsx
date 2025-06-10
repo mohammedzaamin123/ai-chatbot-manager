@@ -16,7 +16,7 @@ import { Analytics } from '@/pages/Analytics';
 import { SocialMediaManager } from '@/pages/SocialMediaManager';
 import { ContentHub } from '@/pages/ContentHub';
 import { ChatbotTuning } from '@/pages/ChatbotTuning';
-import { AIConfig } from '@/pages/AIConfig';
+import { ManageChatbots } from '@/pages/ManageChatbots';
 import { Integrations } from '@/pages/Integrations';
 import NotFound from '@/pages/NotFound';
 import { Toaster } from '@/components/ui/sonner';
@@ -44,7 +44,7 @@ function App() {
                 <Route path="/social-media" element={<SocialMediaManager />} />
                 <Route path="/content-hub" element={<ContentHub />} />
                 <Route path="/chatbot" element={<ChatbotTuning />} />
-                <Route path="/ai-config" element={<AIConfig />} />
+                <Route path="/manage-chatbots" element={<ManageChatbots />} />
                 <Route path="/integrations" element={<Integrations />} />
                 <Route path="/messages" element={<div className="p-6">Messages Page - Coming Soon</div>} />
                 <Route path="*" element={<NotFound />} />
