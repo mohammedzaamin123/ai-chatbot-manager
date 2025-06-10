@@ -60,7 +60,7 @@ const QuickActionCard = ({
         {description}
       </p>
       <Button 
-        className="w-full rounded-xl bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 text-white"
+        className="w-full rounded-xl bg-gradient-to-r from-blue-400 to-purple-400 hover:from-blue-500 hover:to-purple-500 text-white"
         size="sm"
       >
         <Zap className="w-4 h-4 mr-2" />
@@ -76,8 +76,8 @@ export const QuickActionCards = () => {
       title: 'Campaigns',
       description: 'Create and manage AI-powered marketing campaigns across all platforms',
       icon: Calendar,
-      color: 'text-blue-600',
-      bgColor: 'bg-blue-100',
+      color: 'text-blue-500',
+      bgColor: 'bg-blue-50',
       stats: '+12%',
       buttonText: 'Create Campaign'
     },
@@ -85,8 +85,8 @@ export const QuickActionCards = () => {
       title: 'Content Hub',
       description: 'Generate engaging content with AI assistance for all your social channels',
       icon: FileText,
-      color: 'text-green-600',
-      bgColor: 'bg-green-100',
+      color: 'text-green-500',
+      bgColor: 'bg-green-50',
       stats: '23 drafts',
       buttonText: 'Generate Content'
     },
@@ -94,8 +94,8 @@ export const QuickActionCards = () => {
       title: 'Analytics',
       description: 'Track performance and insights across all your marketing channels',
       icon: BarChart3,
-      color: 'text-purple-600',
-      bgColor: 'bg-purple-100',
+      color: 'text-purple-500',
+      bgColor: 'bg-purple-50',
       stats: '+34%',
       buttonText: 'View Analytics'
     },
@@ -103,8 +103,8 @@ export const QuickActionCards = () => {
       title: 'Chatbot',
       description: 'Manage and customize your AI chatbot for customer engagement',
       icon: Bot,
-      color: 'text-indigo-600',
-      bgColor: 'bg-indigo-100',
+      color: 'text-indigo-500',
+      bgColor: 'bg-indigo-50',
       stats: '89% satisfaction',
       buttonText: 'Configure Bot'
     },
@@ -112,8 +112,8 @@ export const QuickActionCards = () => {
       title: 'Integrations',
       description: 'Connect your favorite tools and platforms for seamless workflow',
       icon: Puzzle,
-      color: 'text-pink-600',
-      bgColor: 'bg-pink-100',
+      color: 'text-pink-400',
+      bgColor: 'bg-pink-50',
       stats: '8 connected',
       buttonText: 'Manage Integrations'
     },
@@ -121,8 +121,8 @@ export const QuickActionCards = () => {
       title: 'Messages',
       description: 'Unified inbox for all your customer conversations and engagement',
       icon: MessageSquare,
-      color: 'text-teal-600',
-      bgColor: 'bg-teal-100',
+      color: 'text-teal-500',
+      bgColor: 'bg-teal-50',
       stats: '12 new',
       buttonText: 'View Messages'
     }
