@@ -1,11 +1,10 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Database as DatabaseIcon, Search, ChevronRight, ChevronDown, Table, FileText, Building } from 'lucide-react';
+import { Database as DatabaseIcon, Search, ChevronRight, ChevronDown, Table, FileText, Building, Plus, Plug } from 'lucide-react';
 
 interface DatabaseCollection {
   name: string;
@@ -62,6 +61,11 @@ export const Database = () => {
     };
   };
 
+  const handleConnectMongoDB = () => {
+    console.log('Connecting to MongoDB...');
+    // TODO: Implement MongoDB connection logic
+  };
+
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="flex justify-between items-center">
@@ -72,18 +76,25 @@ export const Database = () => {
           </p>
         </div>
         
-        <Select value={selectedTenant} onValueChange={setSelectedTenant}>
-          <SelectTrigger className="w-48">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {tenants.map((tenant) => (
-              <SelectItem key={tenant} value={tenant}>
-                {tenant}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <div className="flex items-center space-x-3">
+          <Button onClick={handleConnectMongoDB} className="bg-green-600 hover:bg-green-700">
+            <Plug className="w-4 h-4 mr-2" />
+            Connect MongoDB
+          </Button>
+          
+          <Select value={selectedTenant} onValueChange={setSelectedTenant}>
+            <SelectTrigger className="w-48">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {tenants.map((tenant) => (
+                <SelectItem key={tenant} value={tenant}>
+                  {tenant}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       {/* Tenant-specific Stats */}
