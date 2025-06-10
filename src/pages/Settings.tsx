@@ -1,5 +1,5 @@
-
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -17,6 +17,9 @@ import { AIModelSettings } from '@/components/Settings/AIModelSettings';
 import { DeveloperToolsSettings } from '@/components/Settings/DeveloperToolsSettings';
 
 export const Settings = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const currentTab = searchParams.get('tab') || 'general';
+
   const [settings, setSettings] = useState({
     siteName: 'AI Chatbot Platform',
     siteDescription: 'Multi-tenant AI chatbot platform with role-based access control',
@@ -30,6 +33,10 @@ export const Settings = () => {
     dataRetentionDays: 90,
     enableDarkMode: true
   });
+
+  const handleTabChange = (tab: string) => {
+    setSearchParams({ tab });
+  };
 
   const handleSettingChange = (key: string, value: any) => {
     setSettings(prev => ({ ...prev, [key]: value }));
@@ -49,7 +56,7 @@ export const Settings = () => {
         </p>
       </div>
 
-      <Tabs defaultValue="general" className="space-y-6">
+      <Tabs value={currentTab} onValueChange={handleTabChange} className="space-y-6">
         <TabsList className="grid w-full grid-cols-3 lg:grid-cols-6">
           <TabsTrigger value="general" className="flex items-center gap-2">
             <SettingsIcon className="w-4 h-4" />

@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { 
   LayoutDashboard, 
@@ -15,7 +15,12 @@ import {
   BarChart3,
   Bot,
   Puzzle,
-  MessageSquare
+  MessageSquare,
+  ChevronDown,
+  ChevronRight,
+  Shield,
+  Palette,
+  Code
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -38,11 +43,28 @@ const menuItems = [
   { icon: Database, label: 'Database', path: '/database' },
   { icon: Puzzle, label: 'Integrations', path: '/integrations' },
   { icon: Webhook, label: 'Webhooks', path: '/webhooks' },
-  { icon: Settings, label: 'Settings', path: '/settings' },
+];
+
+const settingsSubItems = [
+  { icon: Settings, label: 'General', path: '/settings', tabValue: 'general' },
+  { icon: Palette, label: 'Theme', path: '/settings', tabValue: 'theme' },
+  { icon: Shield, label: 'Security', path: '/settings', tabValue: 'auth' },
+  { icon: Puzzle, label: 'Integrations', path: '/settings', tabValue: 'integrations' },
+  { icon: Bot, label: 'AI Config', path: '/settings', tabValue: 'ai' },
+  { icon: Code, label: 'Developer', path: '/settings', tabValue: 'developer' },
 ];
 
 export const Sidebar = ({ collapsed, onToggle }: SidebarProps) => {
   const location = useLocation();
+  const [settingsExpanded, setSettingsExpanded] = useState(location.pathname === '/settings');
+
+  const handleSettingsClick = () => {
+    if (!collapsed) {
+      setSettingsExpanded(!settingsExpanded);
+    }
+  };
+
+  const isSettingsPage = location.pathname === '/settings';
 
   return (
     <div className={cn(
@@ -101,6 +123,67 @@ export const Sidebar = ({ collapsed, onToggle }: SidebarProps) => {
               </Link>
             );
           })}
+
+          {/* Settings with Sub-menu */}
+          <div>
+            <button
+              onClick={handleSettingsClick}
+              className={cn(
+                "w-full flex items-center px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 group relative",
+                isSettingsPage
+                  ? "bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-lg"
+                  : "text-gray-700 dark:text-gray-300 hover:bg-gradient-to-r hover:from-blue-50 hover:to-purple-50 dark:hover:from-blue-950/50 dark:hover:to-purple-950/50 hover:text-blue-700 dark:hover:text-blue-300",
+                collapsed && "justify-center"
+              )}
+              title={collapsed ? "Settings" : undefined}
+            >
+              <Settings className={cn(
+                "w-5 h-5 flex-shrink-0 transition-transform group-hover:scale-110",
+                isSettingsPage && "text-white"
+              )} />
+              {!collapsed && (
+                <>
+                  <span className="ml-3 truncate">Settings</span>
+                  {settingsExpanded ? (
+                    <ChevronDown className="w-4 h-4 ml-auto" />
+                  ) : (
+                    <ChevronRight className="w-4 h-4 ml-auto" />
+                  )}
+                </>
+              )}
+              {isSettingsPage && (
+                <div className="absolute right-2 w-2 h-2 bg-white rounded-full opacity-80"></div>
+              )}
+            </button>
+
+            {/* Settings Sub-menu */}
+            {!collapsed && settingsExpanded && (
+              <div className="ml-6 mt-1 space-y-1">
+                {settingsSubItems.map((subItem) => {
+                  const SubIcon = subItem.icon;
+                  const searchParams = new URLSearchParams(location.search);
+                  const currentTab = searchParams.get('tab') || 'general';
+                  const isSubActive = location.pathname === subItem.path && currentTab === subItem.tabValue;
+                  
+                  return (
+                    <Link
+                      key={subItem.tabValue}
+                      to={`${subItem.path}?tab=${subItem.tabValue}`}
+                      className={cn(
+                        "flex items-center px-3 py-2 rounded-lg text-xs font-medium transition-all duration-200 group",
+                        isSubActive
+                          ? "bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300"
+                          : "text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-800 dark:hover:text-gray-200"
+                      )}
+                    >
+                      <SubIcon className="w-4 h-4 flex-shrink-0" />
+                      <span className="ml-2 truncate">{subItem.label}</span>
+                    </Link>
+                  );
+                })}
+              </div>
+            )}
+          </div>
         </nav>
 
         {/* Collapse Button */}
