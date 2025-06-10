@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -19,6 +18,8 @@ import { Integrations } from "@/pages/Integrations";
 import { Webhooks } from "@/pages/Webhooks";
 import { Settings } from "@/pages/Settings";
 import NotFound from "./pages/NotFound";
+import { SocialMediaManager } from "@/pages/SocialMediaManager";
+import { ContentHub } from "@/pages/ContentHub";
 
 const queryClient = new QueryClient();
 
@@ -35,6 +36,16 @@ const App = () => (
                 <Route path="/" element={
                   <AdminLayout>
                     <Dashboard />
+                  </AdminLayout>
+                } />
+                <Route path="/social-media" element={
+                  <AdminLayout>
+                    <SocialMediaManager />
+                  </AdminLayout>
+                } />
+                <Route path="/content-hub" element={
+                  <AdminLayout>
+                    <ContentHub />
                   </AdminLayout>
                 } />
                 <Route path="/tenants" element={

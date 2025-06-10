@@ -1,121 +1,131 @@
 
 import React from 'react';
+import { WelcomeSection } from '@/components/Dashboard/WelcomeSection';
+import { QuickActionCards } from '@/components/Dashboard/QuickActionCards';
+import { LatestMessages } from '@/components/Dashboard/LatestMessages';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-
-interface MetricCardProps {
-  title: string;
-  value: string | number;
-  subtitle?: string;
-  trend?: string;
-  delay?: number;
-}
-
-const MetricCard = ({ title, value, subtitle, trend, delay = 0 }: MetricCardProps) => (
-  <Card className="glass hover-lift" style={{ animationDelay: `${delay}ms` }}>
-    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-      <CardTitle className="text-sm font-medium text-muted-foreground">
-        {title}
-      </CardTitle>
-    </CardHeader>
-    <CardContent>
-      <div className="text-2xl font-bold font-poppins">{value}</div>
-      {subtitle && (
-        <p className="text-xs text-muted-foreground mt-1">{subtitle}</p>
-      )}
-      {trend && (
-        <p className="text-xs text-green-600 dark:text-green-400 mt-1">{trend}</p>
-      )}
-    </CardContent>
-  </Card>
-);
+import { Badge } from '@/components/ui/badge';
+import { TrendingUp, Users, MessageSquare, Zap } from 'lucide-react';
 
 export const Dashboard = () => {
+  const quickStats = [
+    {
+      title: 'Active Campaigns',
+      value: '12',
+      change: '+23%',
+      icon: TrendingUp,
+      color: 'text-green-600'
+    },
+    {
+      title: 'Total Reach',
+      value: '84.2K',
+      change: '+12%',
+      icon: Users,
+      color: 'text-blue-600'
+    },
+    {
+      title: 'Engagement Rate',
+      value: '7.8%',
+      change: '+5.4%',
+      icon: MessageSquare,
+      color: 'text-purple-600'
+    },
+    {
+      title: 'AI Generations',
+      value: '156',
+      change: '+67%',
+      icon: Zap,
+      color: 'text-orange-600'
+    }
+  ];
+
   return (
-    <div className="space-y-6 animate-fade-in">
-      <div>
-        <h1 className="text-3xl font-bold font-poppins">Dashboard</h1>
-        <p className="text-muted-foreground mt-2">
-          Welcome to your AI chatbot platform overview
-        </p>
-      </div>
+    <div className="space-y-8 animate-fade-in">
+      {/* Welcome Section */}
+      <WelcomeSection />
 
-      {/* Metrics Grid */}
+      {/* Quick Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <MetricCard
-          title="Total Tenants"
-          value={24}
-          subtitle="Active organizations"
-          trend="+12% from last month"
-          delay={0}
-        />
-        <MetricCard
-          title="Active Chats"
-          value="1,432"
-          subtitle="Web, WhatsApp, IG, FB"
-          trend="+5.2% from yesterday"
-          delay={100}
-        />
-        <MetricCard
-          title="API Requests Today"
-          value="89,247"
-          subtitle="Across all endpoints"
-          trend="+23% from yesterday"
-          delay={200}
-        />
-        <MetricCard
-          title="Pending Webhooks"
-          value={7}
-          subtitle="Delivery queue"
-          trend="Normal load"
-          delay={300}
-        />
+        {quickStats.map((stat) => {
+          const Icon = stat.icon;
+          return (
+            <Card key={stat.title} className="glass border-0 rounded-2xl shadow-lg hover-lift">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-muted-foreground">
+                      {stat.title}
+                    </p>
+                    <div className="flex items-center space-x-2 mt-1">
+                      <p className="text-2xl font-bold">{stat.value}</p>
+                      <Badge className="bg-green-100 text-green-800 text-xs">
+                        {stat.change}
+                      </Badge>
+                    </div>
+                  </div>
+                  <div className={`p-3 bg-gradient-to-br from-blue-50 to-purple-50 rounded-xl`}>
+                    <Icon className={`w-6 h-6 ${stat.color}`} />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })}
       </div>
 
-      {/* Additional Content */}
+      {/* Quick Actions */}
+      <div>
+        <h2 className="text-2xl font-semibold mb-6 text-gray-800 dark:text-gray-100">
+          Quick Actions
+        </h2>
+        <QuickActionCards />
+      </div>
+
+      {/* Messages and Analytics */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card className="glass">
+        <LatestMessages />
+        
+        <Card className="glass border-0 rounded-2xl shadow-lg">
           <CardHeader>
-            <CardTitle className="font-poppins">Recent Activity</CardTitle>
+            <CardTitle className="flex items-center">
+              <TrendingUp className="w-5 h-5 mr-2 text-green-600" />
+              Performance Overview
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {[
-                'New tenant "Acme Corp" added',
-                'API key generated for tenant ID: 1234',
-                'Webhook delivery failed for tenant "TechStart"',
-                'User role updated: john@example.com → Admin',
-                'Database connection established for "RetailPlus"'
-              ].map((activity, index) => (
-                <div key={index} className="flex items-center space-x-3 p-2 rounded hover:bg-muted/30 transition-colors">
-                  <div className="w-2 h-2 bg-primary rounded-full"></div>
-                  <span className="text-sm">{activity}</span>
+              <div className="flex justify-between items-center p-4 bg-gradient-to-r from-green-50/50 to-blue-50/50 rounded-xl">
+                <div>
+                  <p className="font-medium">Content Performance</p>
+                  <p className="text-sm text-muted-foreground">Average engagement across all platforms</p>
                 </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="glass">
-          <CardHeader>
-            <CardTitle className="font-poppins">System Status</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {[
-                { service: 'API Gateway', status: 'Operational', color: 'bg-green-500' },
-                { service: 'Database', status: 'Operational', color: 'bg-green-500' },
-                { service: 'Webhook Service', status: 'Operational', color: 'bg-green-500' },
-                { service: 'Chat Engine', status: 'Operational', color: 'bg-green-500' },
-                { service: 'File Storage', status: 'Degraded', color: 'bg-yellow-500' }
-              ].map((item, index) => (
-                <div key={index} className="flex items-center justify-between p-2 rounded hover:bg-muted/30 transition-colors">
-                  <span className="text-sm font-medium">{item.service}</span>
-                  <div className="flex items-center space-x-2">
-                    <div className={`w-2 h-2 rounded-full ${item.color}`}></div>
-                    <span className="text-xs text-muted-foreground">{item.status}</span>
-                  </div>
+                <div className="text-right">
+                  <p className="text-2xl font-bold text-green-600">8.4%</p>
+                  <p className="text-xs text-green-600">+2.1% from last week</p>
                 </div>
-              ))}
+              </div>
+              
+              <div className="flex justify-between items-center p-4 bg-gradient-to-r from-blue-50/50 to-purple-50/50 rounded-xl">
+                <div>
+                  <p className="font-medium">AI Efficiency</p>
+                  <p className="text-sm text-muted-foreground">Time saved through automation</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-2xl font-bold text-blue-600">24.5h</p>
+                  <p className="text-xs text-blue-600">This month</p>
+                </div>
+              </div>
+              
+              <div className="flex justify-between items-center p-4 bg-gradient-to-r from-purple-50/50 to-pink-50/50 rounded-xl">
+                <div>
+                  <p className="font-medium">Response Rate</p>
+                  <p className="text-sm text-muted-foreground">Customer engagement rate</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-2xl font-bold text-purple-600">92%</p>
+                  <p className="text-xs text-purple-600">+5% improvement</p>
+                </div>
+              </div>
             </div>
           </CardContent>
         </Card>
