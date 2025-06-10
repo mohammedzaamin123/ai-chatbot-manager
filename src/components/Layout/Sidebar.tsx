@@ -29,21 +29,7 @@ interface SidebarProps {
   onToggle: () => void;
 }
 
-// Chatbot & AI related items at the top
-const chatbotItems = [
-  { icon: Bot, label: 'Chatbot', path: '/chatbot' },
-  { icon: Bot, label: 'AI Configuration', path: '/ai-config' },
-  { icon: MessageSquare, label: 'Messages', path: '/messages' },
-  { icon: BarChart3, label: 'Analytics', path: '/analytics' },
-];
-
-// AI Content Management items
-const contentItems = [
-  { icon: Calendar, label: 'Social Media', path: '/social-media' },
-  { icon: FileText, label: 'Content Hub', path: '/content-hub' },
-];
-
-// Platform Management items
+// Platform Management items (moved to top)
 const platformItems = [
   { icon: LayoutDashboard, label: 'Dashboard', path: '/' },
   { icon: Users, label: 'Tenants', path: '/tenants' },
@@ -53,6 +39,20 @@ const platformItems = [
   { icon: Key, label: 'API Keys', path: '/api-keys' },
   { icon: Puzzle, label: 'Integrations', path: '/integrations' },
   { icon: Webhook, label: 'Webhooks', path: '/webhooks' },
+];
+
+// Chatbot & AI related items (second section)
+const chatbotItems = [
+  { icon: Bot, label: 'Chatbot', path: '/chatbot' },
+  { icon: Bot, label: 'AI Configuration', path: '/ai-config' },
+  { icon: MessageSquare, label: 'Messages', path: '/messages' },
+  { icon: BarChart3, label: 'Analytics', path: '/analytics' },
+];
+
+// Content Management items (third section)
+const contentItems = [
+  { icon: Calendar, label: 'Social Media', path: '/social-media' },
+  { icon: FileText, label: 'Content Hub', path: '/content-hub' },
 ];
 
 const settingsSubItems = [
@@ -145,16 +145,16 @@ export const Sidebar = ({ collapsed, onToggle }: SidebarProps) => {
 
         {/* Navigation */}
         <nav className="flex-1 p-3 space-y-4 overflow-y-auto">
-          {/* Chatbot & AI Section */}
+          {/* Platform Management Section (first) */}
+          {renderMenuSection(platformItems, "Platform")}
+          
+          {/* Chatbot & AI Section (second) */}
           {renderMenuSection(chatbotItems, "Chatbot & AI")}
           
-          {/* AI Content Management Section */}
+          {/* Content Management Section (third) */}
           {renderMenuSection(contentItems, "Content Management")}
-          
-          {/* Platform Management Section */}
-          {renderMenuSection(platformItems, "Platform")}
 
-          {/* Settings with Sub-menu */}
+          {/* Settings with Sub-menu (last) */}
           <div className="space-y-1">
             {!collapsed && (
               <div className="px-3 py-2">
