@@ -377,7 +377,7 @@ export const Analytics = () => {
               <CardContent>
                 <div className="space-y-4">
                   <div className="flex justify-between items-center">
-                    <span className="text-sm">< 1 second</span>
+                    <span className="text-sm">&lt; 1 second</span>
                     <div className="flex items-center space-x-2">
                       <div className="w-32 h-2 bg-muted rounded-full">
                         <div className="w-24 h-2 bg-green-500 rounded-full"></div>
@@ -397,7 +397,7 @@ export const Analytics = () => {
                   </div>
                   
                   <div className="flex justify-between items-center">
-                    <span className="text-sm">> 3 seconds</span>
+                    <span className="text-sm">&gt; 3 seconds</span>
                     <div className="flex items-center space-x-2">
                       <div className="w-32 h-2 bg-muted rounded-full">
                         <div className="w-4 h-2 bg-red-500 rounded-full"></div>
