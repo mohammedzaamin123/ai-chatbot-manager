@@ -6,7 +6,11 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Search, Users as UsersIcon, Shield, Filter } from 'lucide-react';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Search, Users as UsersIcon, Shield, MoreHorizontal, Edit, Trash2 } from 'lucide-react';
+import { AddUserModal } from '@/components/Users/AddUserModal';
+import { EditUserModal } from '@/components/Users/EditUserModal';
+import { DeleteUserDialog } from '@/components/Users/DeleteUserDialog';
 
 interface User {
   id: string;
@@ -18,7 +22,7 @@ interface User {
   lastActive: string;
 }
 
-const mockUsers: User[] = [
+const initialMockUsers: User[] = [
   { id: '1', name: 'John Doe', email: 'john@acmecorp.com', role: 'Admin', tenant: 'Acme Corp', status: 'Active', lastActive: '2024-01-15' },
   { id: '2', name: 'Jane Smith', email: 'jane@acmecorp.com', role: 'Agent', tenant: 'Acme Corp', status: 'Active', lastActive: '2024-01-14' },
   { id: '3', name: 'Bob Wilson', email: 'bob@techstart.com', role: 'Manager', tenant: 'TechStart Inc', status: 'Active', lastActive: '2024-01-13' },
@@ -28,11 +32,16 @@ const mockUsers: User[] = [
 const tenants = ['All Tenants', 'Acme Corp', 'TechStart Inc', 'RetailPlus'];
 
 export const Users = () => {
+  const [users, setUsers] = useState<User[]>(initialMockUsers);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTenant, setSelectedTenant] = useState('All Tenants');
   const [selectedRole, setSelectedRole] = useState('All Roles');
+  const [editingUser, setEditingUser] = useState<User | null>(null);
+  const [deletingUser, setDeletingUser] = useState<User | null>(null);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
-  const filteredUsers = mockUsers.filter(user => {
+  const filteredUsers = users.filter(user => {
     const matchesSearch = user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          user.email.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesTenant = selectedTenant === 'All Tenants' || user.tenant === selectedTenant;
@@ -40,6 +49,28 @@ export const Users = () => {
     
     return matchesSearch && matchesTenant && matchesRole;
   });
+
+  const handleUserAdded = (newUser: User) => {
+    setUsers([...users, newUser]);
+  };
+
+  const handleUserUpdated = (updatedUser: User) => {
+    setUsers(users.map(user => user.id === updatedUser.id ? updatedUser : user));
+  };
+
+  const handleUserDeleted = (userId: string) => {
+    setUsers(users.filter(user => user.id !== userId));
+  };
+
+  const handleEditUser = (user: User) => {
+    setEditingUser(user);
+    setEditModalOpen(true);
+  };
+
+  const handleDeleteUser = (user: User) => {
+    setDeletingUser(user);
+    setDeleteDialogOpen(true);
+  };
 
   const getRoleBadgeColor = (role: string) => {
     switch (role) {
@@ -60,10 +91,7 @@ export const Users = () => {
           </p>
         </div>
         
-        <Button className="bg-foreground text-background hover:bg-foreground/90">
-          <Plus className="w-4 h-4 mr-2" />
-          Add User
-        </Button>
+        <AddUserModal onUserAdded={handleUserAdded} tenants={tenants} />
       </div>
 
       {/* Stats Cards */}
@@ -199,9 +227,23 @@ export const Users = () => {
                   </TableCell>
                   <TableCell className="text-muted-foreground">{user.lastActive}</TableCell>
                   <TableCell>
-                    <Button variant="ghost" size="sm">
-                      Edit
-                    </Button>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="sm">
+                          <MoreHorizontal className="w-4 h-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="bg-background border shadow-md">
+                        <DropdownMenuItem onClick={() => handleEditUser(user)}>
+                          <Edit className="w-4 h-4 mr-2" />
+                          Edit
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => handleDeleteUser(user)} className="text-destructive">
+                          <Trash2 className="w-4 h-4 mr-2" />
+                          Delete
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </TableCell>
                 </TableRow>
               ))}
@@ -209,6 +251,23 @@ export const Users = () => {
           </Table>
         </CardContent>
       </Card>
+
+      {/* Edit User Modal */}
+      <EditUserModal
+        user={editingUser}
+        open={editModalOpen}
+        onOpenChange={setEditModalOpen}
+        onUserUpdated={handleUserUpdated}
+        tenants={tenants}
+      />
+
+      {/* Delete User Dialog */}
+      <DeleteUserDialog
+        user={deletingUser}
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        onUserDeleted={handleUserDeleted}
+      />
     </div>
   );
 };
