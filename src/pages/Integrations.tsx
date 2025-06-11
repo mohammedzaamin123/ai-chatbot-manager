@@ -6,17 +6,22 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
-import { MessageSquare, Phone, Camera, Users, Settings } from 'lucide-react';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { MessageSquare, Phone, Camera, Users, Settings, Plus, CheckCircle, XCircle, AlertCircle, ExternalLink, Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface Integration {
   id: string;
   name: string;
-  type: 'WhatsApp' | 'Instagram' | 'Facebook' | 'Slack';
+  type: 'WhatsApp' | 'Instagram' | 'Facebook' | 'Slack' | 'Discord' | 'Telegram';
   status: 'Connected' | 'Disconnected' | 'Error';
   icon: React.ElementType;
   description: string;
   apiKey?: string;
   webhookUrl?: string;
+  lastTested?: string;
 }
 
 const mockIntegrations: Integration[] = [
@@ -28,7 +33,8 @@ const mockIntegrations: Integration[] = [
     icon: Phone,
     description: 'Connect your WhatsApp Business account for customer support',
     apiKey: 'wa_live_abcd1234',
-    webhookUrl: 'https://api.example.com/webhook/whatsapp'
+    webhookUrl: 'https://api.example.com/webhook/whatsapp',
+    lastTested: '2 hours ago'
   },
   {
     id: '2',
@@ -37,7 +43,8 @@ const mockIntegrations: Integration[] = [
     status: 'Connected',
     icon: Camera,
     description: 'Handle Instagram direct messages through your chatbot',
-    apiKey: 'ig_live_efgh5678'
+    apiKey: 'ig_live_efgh5678',
+    lastTested: '1 day ago'
   },
   {
     id: '3',
@@ -53,12 +60,24 @@ const mockIntegrations: Integration[] = [
     type: 'Slack',
     status: 'Error',
     icon: MessageSquare,
-    description: 'Send notifications to your Slack workspace'
+    description: 'Send notifications to your Slack workspace',
+    lastTested: '3 days ago'
   }
 ];
 
 export const Integrations = () => {
   const [integrations, setIntegrations] = useState(mockIntegrations);
+  const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [selectedIntegration, setSelectedIntegration] = useState<Integration | null>(null);
+  const [testingConnection, setTestingConnection] = useState<string | null>(null);
+  const [newIntegration, setNewIntegration] = useState({
+    name: '',
+    type: 'WhatsApp' as const,
+    description: '',
+    apiKey: '',
+    webhookUrl: ''
+  });
 
   const toggleIntegration = (integrationId: string) => {
     setIntegrations(prev => prev.map(integration => 
@@ -69,6 +88,67 @@ export const Integrations = () => {
           }
         : integration
     ));
+    toast.success('Integration status updated');
+  };
+
+  const handleTestConnection = async (integrationId: string) => {
+    setTestingConnection(integrationId);
+    
+    // Simulate API call
+    setTimeout(() => {
+      const integration = integrations.find(i => i.id === integrationId);
+      if (integration) {
+        setIntegrations(prev => prev.map(i => 
+          i.id === integrationId 
+            ? { ...i, status: 'Connected', lastTested: 'Just now' }
+            : i
+        ));
+        toast.success(`${integration.name} connection test successful`);
+      }
+      setTestingConnection(null);
+    }, 2000);
+  };
+
+  const handleConfigure = (integration: Integration) => {
+    setSelectedIntegration(integration);
+    setDetailsDialogOpen(true);
+  };
+
+  const handleSaveConfiguration = () => {
+    if (selectedIntegration) {
+      setIntegrations(prev => prev.map(i => 
+        i.id === selectedIntegration.id 
+          ? { ...selectedIntegration }
+          : i
+      ));
+      toast.success('Configuration saved successfully');
+      setDetailsDialogOpen(false);
+    }
+  };
+
+  const handleCreateIntegration = () => {
+    if (!newIntegration.name || !newIntegration.type) {
+      toast.error('Please fill in all required fields');
+      return;
+    }
+
+    const newIntegrationData: Integration = {
+      id: (integrations.length + 1).toString(),
+      name: newIntegration.name,
+      type: newIntegration.type,
+      status: 'Disconnected',
+      description: newIntegration.description,
+      apiKey: newIntegration.apiKey,
+      webhookUrl: newIntegration.webhookUrl,
+      icon: newIntegration.type === 'WhatsApp' ? Phone :
+            newIntegration.type === 'Instagram' ? Camera :
+            newIntegration.type === 'Facebook' ? Users : MessageSquare
+    };
+
+    setIntegrations(prev => [...prev, newIntegrationData]);
+    setNewIntegration({ name: '', type: 'WhatsApp', description: '', apiKey: '', webhookUrl: '' });
+    setCreateDialogOpen(false);
+    toast.success('Integration created successfully');
   };
 
   const getStatusColor = (status: string) => {
@@ -84,15 +164,103 @@ export const Integrations = () => {
     }
   };
 
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'Connected':
+        return <CheckCircle className="w-4 h-4 text-green-500" />;
+      case 'Error':
+        return <XCircle className="w-4 h-4 text-red-500" />;
+      case 'Disconnected':
+        return <AlertCircle className="w-4 h-4 text-gray-400" />;
+      default:
+        return null;
+    }
+  };
+
   return (
     <div className="space-y-6 animate-fade-in">
-      <div>
-        <h1 className="text-3xl font-bold font-poppins">Integrations</h1>
-        <p className="text-muted-foreground mt-2">
-          Connect external services to extend your chatbot's capabilities
-        </p>
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold font-poppins">Integrations</h1>
+          <p className="text-muted-foreground mt-2">
+            Connect external services to extend your chatbot's capabilities
+          </p>
+        </div>
+        <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
+          <DialogTrigger asChild>
+            <Button className="bg-foreground text-background">
+              <Plus className="w-4 h-4 mr-2" />
+              Create Integration
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>Create New Integration</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="integration-name">Integration Name</Label>
+                <Input
+                  id="integration-name"
+                  value={newIntegration.name}
+                  onChange={(e) => setNewIntegration(prev => ({ ...prev, name: e.target.value }))}
+                  placeholder="Enter integration name"
+                />
+              </div>
+              
+              <div>
+                <Label>Integration Type</Label>
+                <Select value={newIntegration.type} onValueChange={(value: any) => setNewIntegration(prev => ({ ...prev, type: value }))}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="WhatsApp">WhatsApp</SelectItem>
+                    <SelectItem value="Instagram">Instagram</SelectItem>
+                    <SelectItem value="Facebook">Facebook</SelectItem>
+                    <SelectItem value="Slack">Slack</SelectItem>
+                    <SelectItem value="Discord">Discord</SelectItem>
+                    <SelectItem value="Telegram">Telegram</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label htmlFor="integration-description">Description</Label>
+                <Textarea
+                  id="integration-description"
+                  value={newIntegration.description}
+                  onChange={(e) => setNewIntegration(prev => ({ ...prev, description: e.target.value }))}
+                  placeholder="Integration description"
+                  rows={3}
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="integration-api-key">API Key</Label>
+                <Input
+                  id="integration-api-key"
+                  type="password"
+                  value={newIntegration.apiKey}
+                  onChange={(e) => setNewIntegration(prev => ({ ...prev, apiKey: e.target.value }))}
+                  placeholder="Enter API key"
+                />
+              </div>
+
+              <div className="flex space-x-2">
+                <Button variant="outline" onClick={() => setCreateDialogOpen(false)} className="flex-1">
+                  Cancel
+                </Button>
+                <Button onClick={handleCreateIntegration} className="flex-1">
+                  Create Integration
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
 
+      {/* Statistics Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Card className="glass">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -142,9 +310,13 @@ export const Integrations = () => {
         </Card>
       </div>
 
+      {/* Integrations List */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {integrations.map((integration) => {
           const Icon = integration.icon;
+          const isConnected = integration.status === 'Connected';
+          const isTesting = testingConnection === integration.id;
+          
           return (
             <Card key={integration.id} className="glass hover-lift">
               <CardHeader>
@@ -159,60 +331,146 @@ export const Integrations = () => {
                     </div>
                   </div>
                   <div className="flex items-center space-x-2">
+                    {getStatusIcon(integration.status)}
                     <Badge className={getStatusColor(integration.status)}>
                       {integration.status}
                     </Badge>
+                  </div>
+                </div>
+              </CardHeader>
+              
+              <CardContent>
+                <div className="space-y-4">
+                  {integration.lastTested && (
+                    <div className="text-sm text-muted-foreground">
+                      Last tested: {integration.lastTested}
+                    </div>
+                  )}
+                  
+                  <div className="flex space-x-2">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => handleTestConnection(integration.id)}
+                      disabled={isTesting}
+                      className="flex-1"
+                    >
+                      {isTesting ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Testing...
+                        </>
+                      ) : (
+                        'Test Connection'
+                      )}
+                    </Button>
+                    
+                    <Button variant="outline" size="sm" onClick={() => handleConfigure(integration)} className="flex-1">
+                      <Settings className="w-4 h-4 mr-2" />
+                      Configure
+                    </Button>
+                  </div>
+                  
+                  <div className="flex items-center justify-between pt-2 border-t">
+                    <span className="text-sm text-muted-foreground">
+                      Auto-sync enabled
+                    </span>
                     <Switch
                       checked={integration.status === 'Connected'}
                       onCheckedChange={() => toggleIntegration(integration.id)}
                     />
                   </div>
                 </div>
-              </CardHeader>
-              
-              {integration.status === 'Connected' && (
-                <CardContent>
-                  <div className="space-y-4">
-                    {integration.apiKey && (
-                      <div>
-                        <Label htmlFor={`api-key-${integration.id}`}>API Key</Label>
-                        <Input
-                          id={`api-key-${integration.id}`}
-                          type="password"
-                          value={integration.apiKey}
-                          readOnly
-                          className="font-mono text-sm"
-                        />
-                      </div>
-                    )}
-                    
-                    {integration.webhookUrl && (
-                      <div>
-                        <Label htmlFor={`webhook-${integration.id}`}>Webhook URL</Label>
-                        <Input
-                          id={`webhook-${integration.id}`}
-                          value={integration.webhookUrl}
-                          readOnly
-                          className="font-mono text-sm"
-                        />
-                      </div>
-                    )}
-                    
-                    <div className="flex justify-end space-x-2">
-                      <Button variant="outline" size="sm">
-                        Test Connection
-                      </Button>
-                      <Button variant="outline" size="sm">
-                        Configure
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              )}
+              </CardContent>
             </Card>
           );
         })}
       </div>
+
+      {/* Integration Details Dialog */}
+      <Dialog open={detailsDialogOpen} onOpenChange={setDetailsDialogOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Configure {selectedIntegration?.name}</DialogTitle>
+          </DialogHeader>
+          {selectedIntegration && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="detail-name">Integration Name</Label>
+                  <Input 
+                    id="detail-name" 
+                    value={selectedIntegration.name}
+                    onChange={(e) => setSelectedIntegration(prev => prev ? { ...prev, name: e.target.value } : null)}
+                  />
+                </div>
+                <div>
+                  <Label>Type</Label>
+                  <Select value={selectedIntegration.type}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="WhatsApp">WhatsApp</SelectItem>
+                      <SelectItem value="Instagram">Instagram</SelectItem>
+                      <SelectItem value="Facebook">Facebook</SelectItem>
+                      <SelectItem value="Slack">Slack</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div>
+                <Label htmlFor="detail-description">Description</Label>
+                <Textarea 
+                  id="detail-description" 
+                  value={selectedIntegration.description}
+                  onChange={(e) => setSelectedIntegration(prev => prev ? { ...prev, description: e.target.value } : null)}
+                  rows={3}
+                />
+              </div>
+
+              {selectedIntegration.apiKey && (
+                <div>
+                  <Label htmlFor="detail-api-key">API Key</Label>
+                  <Input
+                    id="detail-api-key"
+                    type="password"
+                    value={selectedIntegration.apiKey}
+                    onChange={(e) => setSelectedIntegration(prev => prev ? { ...prev, apiKey: e.target.value } : null)}
+                  />
+                </div>
+              )}
+              
+              {selectedIntegration.webhookUrl && (
+                <div>
+                  <Label htmlFor="detail-webhook">Webhook URL</Label>
+                  <Input
+                    id="detail-webhook"
+                    value={selectedIntegration.webhookUrl}
+                    onChange={(e) => setSelectedIntegration(prev => prev ? { ...prev, webhookUrl: e.target.value } : null)}
+                  />
+                </div>
+              )}
+
+              <div className="flex justify-between">
+                <Button variant="outline" onClick={() => handleTestConnection(selectedIntegration.id)}>
+                  <ExternalLink className="w-4 h-4 mr-2" />
+                  Test Connection
+                </Button>
+                <div className="space-x-2">
+                  <Button variant="outline" onClick={() => setDetailsDialogOpen(false)}>
+                    Cancel
+                  </Button>
+                  <Button onClick={handleSaveConfiguration}>
+                    Save Changes
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
