@@ -4,6 +4,8 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { UserProvider } from '@/contexts/UserContext';
 import { ThemeProvider } from '@/contexts/ThemeContext';
 import { AdminLayout } from '@/components/Layout/AdminLayout';
+import { Landing } from '@/pages/Landing';
+import { Onboarding } from '@/pages/Onboarding';
 import { Dashboard } from '@/pages/Dashboard';
 import { Users } from '@/pages/Users';
 import { Tenants } from '@/pages/Tenants';
@@ -21,9 +23,48 @@ import { Integrations } from '@/pages/Integrations';
 import { GetStarted } from '@/pages/GetStarted';
 import NotFound from '@/pages/NotFound';
 import { Toaster } from '@/components/ui/sonner';
+import { useUser } from '@/contexts/UserContext';
 import './App.css';
 
 const queryClient = new QueryClient();
+
+function AppContent() {
+  const { user } = useUser();
+
+  // Show landing page if user is not logged in
+  if (!user) {
+    return (
+      <Routes>
+        <Route path="*" element={<Landing />} />
+      </Routes>
+    );
+  }
+
+  return (
+    <AdminLayout>
+      <Routes>
+        <Route path="/" element={<Dashboard />} />
+        <Route path="/onboarding" element={<Onboarding />} />
+        <Route path="/get-started" element={<GetStarted />} />
+        <Route path="/users" element={<Users />} />
+        <Route path="/tenants" element={<Tenants />} />
+        <Route path="/database" element={<Database />} />
+        <Route path="/settings" element={<Settings />} />
+        <Route path="/api-keys" element={<ApiKeys />} />
+        <Route path="/webhooks" element={<Webhooks />} />
+        <Route path="/channels" element={<Channels />} />
+        <Route path="/analytics" element={<Analytics />} />
+        <Route path="/social-media" element={<SocialMediaManager />} />
+        <Route path="/content-hub" element={<ContentHub />} />
+        <Route path="/chatbot" element={<ChatbotTuning />} />
+        <Route path="/manage-chatbots" element={<ManageChatbots />} />
+        <Route path="/integrations" element={<Integrations />} />
+        <Route path="/messages" element={<div className="p-6">Messages Page - Coming Soon</div>} />
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </AdminLayout>
+  );
+}
 
 function App() {
   return (
@@ -31,27 +72,7 @@ function App() {
       <ThemeProvider>
         <UserProvider>
           <Router>
-            <AdminLayout>
-              <Routes>
-                <Route path="/" element={<Dashboard />} />
-                <Route path="/get-started" element={<GetStarted />} />
-                <Route path="/users" element={<Users />} />
-                <Route path="/tenants" element={<Tenants />} />
-                <Route path="/database" element={<Database />} />
-                <Route path="/settings" element={<Settings />} />
-                <Route path="/api-keys" element={<ApiKeys />} />
-                <Route path="/webhooks" element={<Webhooks />} />
-                <Route path="/channels" element={<Channels />} />
-                <Route path="/analytics" element={<Analytics />} />
-                <Route path="/social-media" element={<SocialMediaManager />} />
-                <Route path="/content-hub" element={<ContentHub />} />
-                <Route path="/chatbot" element={<ChatbotTuning />} />
-                <Route path="/manage-chatbots" element={<ManageChatbots />} />
-                <Route path="/integrations" element={<Integrations />} />
-                <Route path="/messages" element={<div className="p-6">Messages Page - Coming Soon</div>} />
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </AdminLayout>
+            <AppContent />
             <Toaster />
           </Router>
         </UserProvider>
