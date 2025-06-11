@@ -4,7 +4,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Database as DatabaseIcon, Search, ChevronRight, ChevronDown, Table, FileText, Building, Plus, Plug } from 'lucide-react';
+import { Database as DatabaseIcon, Search, ChevronRight, ChevronDown, Table, FileText, Building, Plus, Plug, Bot, Settings } from 'lucide-react';
+import { CreateDatabaseModal } from '@/components/Database/CreateDatabaseModal';
+import { Link } from 'react-router-dom';
 
 interface DatabaseCollection {
   name: string;
@@ -33,6 +35,7 @@ export const Database = () => {
   const [collections, setCollections] = useState(mockCollections);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTenant, setSelectedTenant] = useState('All Tenants');
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
   const toggleCollection = (collectionName: string, tenant: string) => {
     setCollections(prev => prev.map(col => 
@@ -77,9 +80,17 @@ export const Database = () => {
         </div>
         
         <div className="flex items-center space-x-3">
-          <Button onClick={handleConnectMongoDB} className="bg-green-600 hover:bg-green-700">
+          <Button 
+            onClick={() => setIsCreateModalOpen(true)}
+            className="bg-blue-600 hover:bg-blue-700"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Create Database
+          </Button>
+          
+          <Button onClick={handleConnectMongoDB} variant="outline">
             <Plug className="w-4 h-4 mr-2" />
-            Connect MongoDB
+            Connect External DB
           </Button>
           
           <Select value={selectedTenant} onValueChange={setSelectedTenant}>
@@ -201,14 +212,22 @@ export const Database = () => {
         <CardHeader>
           <div className="flex justify-between items-center">
             <CardTitle className="font-poppins">Database Collections</CardTitle>
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-              <Input
-                placeholder="Search collections..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 w-64"
-              />
+            <div className="flex items-center space-x-3">
+              <Link to="/chatbot">
+                <Button variant="outline" size="sm">
+                  <Bot className="w-4 h-4 mr-2" />
+                  Create Chatbot
+                </Button>
+              </Link>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+                <Input
+                  placeholder="Search collections..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10 w-64"
+                />
+              </div>
             </div>
           </div>
         </CardHeader>
@@ -292,6 +311,11 @@ export const Database = () => {
           </div>
         </CardContent>
       </Card>
+
+      <CreateDatabaseModal 
+        open={isCreateModalOpen} 
+        onOpenChange={setIsCreateModalOpen} 
+      />
     </div>
   );
 };
