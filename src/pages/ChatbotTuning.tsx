@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -40,11 +39,20 @@ import { useNavigate } from 'react-router-dom';
 
 export const ChatbotTuning = () => {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState('database');
+  const [activeTab, setActiveTab] = useState('setup');
   const [roleDialogOpen, setRoleDialogOpen] = useState(false);
   const [webhookDialogOpen, setWebhookDialogOpen] = useState(false);
   const [deployDialogOpen, setDeployDialogOpen] = useState(false);
   
+  // Chatbot Setup
+  const [chatbotConfig, setChatbotConfig] = useState({
+    name: '',
+    description: '',
+    purpose: 'customer-support',
+    industry: '',
+    language: 'english'
+  });
+
   // Database Configuration
   const [selectedDatabase, setSelectedDatabase] = useState('mongodb-support');
   const [selectedCollections, setSelectedCollections] = useState<string[]>([]);
@@ -134,7 +142,7 @@ Sample data:
   };
 
   const handleNextStep = () => {
-    const tabs = ['database', 'roles', 'ai-config', 'integrations', 'testing'];
+    const tabs = ['setup', 'database', 'roles', 'ai-config', 'integrations', 'testing'];
     const currentIndex = tabs.indexOf(activeTab);
     if (currentIndex < tabs.length - 1) {
       setActiveTab(tabs[currentIndex + 1]);
@@ -236,6 +244,10 @@ Sample data:
         <CardContent className="p-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${activeTab === 'setup' ? 'bg-foreground text-background' : 'bg-muted'}`}>
+                <Bot className="w-4 h-4" />
+              </div>
+              <ArrowRight className="w-4 h-4 text-muted-foreground" />
               <div className={`w-8 h-8 rounded-full flex items-center justify-center ${activeTab === 'database' ? 'bg-foreground text-background' : 'bg-muted'}`}>
                 <Database className="w-4 h-4" />
               </div>
@@ -264,7 +276,11 @@ Sample data:
       </Card>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-6">
+          <TabsTrigger value="setup" className="flex items-center gap-2">
+            <Bot className="w-4 h-4" />
+            Setup
+          </TabsTrigger>
           <TabsTrigger value="database" className="flex items-center gap-2">
             <Database className="w-4 h-4" />
             Database
@@ -287,8 +303,86 @@ Sample data:
           </TabsTrigger>
         </TabsList>
 
+        <TabsContent value="setup" className="space-y-6">
+          <Card className="glass">
+            <CardHeader>
+              <CardTitle className="font-poppins flex items-center">
+                <Bot className="w-5 h-5 mr-2" />
+                Chatbot Configuration
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="chatbot-name">Chatbot Name</Label>
+                  <Input
+                    id="chatbot-name"
+                    value={chatbotConfig.name}
+                    onChange={(e) => setChatbotConfig(prev => ({ ...prev, name: e.target.value }))}
+                    placeholder="Enter chatbot name"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="chatbot-purpose">Purpose</Label>
+                  <Select value={chatbotConfig.purpose} onValueChange={(value) => setChatbotConfig(prev => ({ ...prev, purpose: value }))}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="customer-support">Customer Support</SelectItem>
+                      <SelectItem value="sales">Sales Assistant</SelectItem>
+                      <SelectItem value="lead-generation">Lead Generation</SelectItem>
+                      <SelectItem value="information">Information Bot</SelectItem>
+                      <SelectItem value="booking">Booking Assistant</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div>
+                <Label htmlFor="chatbot-description">Description</Label>
+                <Textarea
+                  id="chatbot-description"
+                  value={chatbotConfig.description}
+                  onChange={(e) => setChatbotConfig(prev => ({ ...prev, description: e.target.value }))}
+                  placeholder="Describe what your chatbot does"
+                  rows={3}
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="chatbot-industry">Industry</Label>
+                  <Input
+                    id="chatbot-industry"
+                    value={chatbotConfig.industry}
+                    onChange={(e) => setChatbotConfig(prev => ({ ...prev, industry: e.target.value }))}
+                    placeholder="e.g., Healthcare, E-commerce, Finance"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="chatbot-language">Primary Language</Label>
+                  <Select value={chatbotConfig.language} onValueChange={(value) => setChatbotConfig(prev => ({ ...prev, language: value }))}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="english">English</SelectItem>
+                      <SelectItem value="spanish">Spanish</SelectItem>
+                      <SelectItem value="french">French</SelectItem>
+                      <SelectItem value="german">German</SelectItem>
+                      <SelectItem value="italian">Italian</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
         <TabsContent value="database" className="space-y-6">
-          <div className="grid grid-cols-1 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Database Selection - Left Side */}
             <Card className="glass">
               <CardHeader>
                 <CardTitle className="font-poppins flex items-center">
@@ -320,21 +414,9 @@ Sample data:
                   <Settings className="w-4 h-4 mr-2" />
                   Manage Database Connections
                 </Button>
-              </CardContent>
-            </Card>
 
-            <CollectionSelector 
-              selectedDatabase={selectedDatabase}
-              onCollectionSelect={handleCollectionSelect}
-            />
-
-            <Card className="glass">
-              <CardHeader>
-                <CardTitle className="font-poppins">Test Database Query</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
                 <div>
-                  <Label htmlFor="test-query">Query</Label>
+                  <Label htmlFor="test-query">Test Query</Label>
                   <Textarea
                     id="test-query"
                     value={testQuery}
@@ -357,6 +439,12 @@ Sample data:
                 )}
               </CardContent>
             </Card>
+
+            {/* Collection Selection - Right Side */}
+            <CollectionSelector 
+              selectedDatabase={selectedDatabase}
+              onCollectionSelect={handleCollectionSelect}
+            />
           </div>
         </TabsContent>
 

@@ -21,7 +21,6 @@ import {
   Shield,
   Palette,
   Code,
-  Rocket,
   PlayCircle
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -32,14 +31,15 @@ interface SidebarProps {
   onToggle: () => void;
 }
 
-// Quick Start section (first)
-const quickStartItems = [
-  { icon: Rocket, label: 'Get Started', path: '/get-started', isNew: true },
+// Dashboard section (first)
+const dashboardItems = [
   { icon: LayoutDashboard, label: 'Dashboard', path: '/' },
 ];
 
-// Platform Management items
+// Platform Management items (with Create Chatbot at top)
 const platformItems = [
+  { icon: Bot, label: 'Create Chatbot', path: '/chatbot', isPopular: true },
+  { icon: Bot, label: 'Manage Chatbots', path: '/manage-chatbots' },
   { icon: Users, label: 'Tenants', path: '/tenants' },
   { icon: User, label: 'Users & Roles', path: '/users' },
   { icon: Database, label: 'Database', path: '/database' },
@@ -49,10 +49,8 @@ const platformItems = [
   { icon: Webhook, label: 'Webhooks', path: '/webhooks' },
 ];
 
-// Chatbot & AI related items
-const chatbotItems = [
-  { icon: Bot, label: 'Create Chatbot', path: '/chatbot', isPopular: true },
-  { icon: Bot, label: 'Manage Chatbots', path: '/manage-chatbots' },
+// Analytics & Content items
+const analyticsItems = [
   { icon: MessageSquare, label: 'Messages', path: '/messages' },
   { icon: BarChart3, label: 'Analytics', path: '/analytics' },
 ];
@@ -169,14 +167,14 @@ export const Sidebar = ({ collapsed, onToggle }: SidebarProps) => {
 
         {/* Navigation */}
         <nav className="flex-1 p-3 space-y-4 overflow-y-auto">
-          {/* Quick Start Section (first) */}
-          {renderMenuSection(quickStartItems, "Quick Start", true)}
+          {/* Dashboard Section */}
+          {renderMenuSection(dashboardItems, "Dashboard")}
           
           {/* Platform Management Section */}
-          {renderMenuSection(platformItems, "Platform")}
+          {renderMenuSection(platformItems, "Platform", true)}
           
-          {/* Chatbot & AI Section */}
-          {renderMenuSection(chatbotItems, "Chatbot & AI", true)}
+          {/* Analytics & Monitoring Section */}
+          {renderMenuSection(analyticsItems, "Analytics")}
           
           {/* Content Management Section */}
           {renderMenuSection(contentItems, "Content Management")}
