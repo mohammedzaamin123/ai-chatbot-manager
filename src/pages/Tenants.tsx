@@ -7,8 +7,9 @@ import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Search, MoreHorizontal, Edit, Trash2, Upload } from 'lucide-react';
+import { Plus, Search, MoreHorizontal, Edit, Trash2, Upload, Eye } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { TenantDetailsModal } from '@/components/Tenants/TenantDetailsModal';
 
 interface Tenant {
   id: string;
@@ -46,6 +47,8 @@ const mockTenants: Tenant[] = [
 export const Tenants = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [selectedTenant, setSelectedTenant] = useState<Tenant | null>(null);
+  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const [newTenant, setNewTenant] = useState({
     name: '',
     mongoUri: '',
@@ -67,6 +70,16 @@ export const Tenants = () => {
     console.log('Adding tenant:', newTenant);
     setIsAddModalOpen(false);
     setNewTenant({ name: '', mongoUri: '', logo: null });
+  };
+
+  const handleTenantClick = (tenant: Tenant) => {
+    setSelectedTenant(tenant);
+    setIsDetailsModalOpen(true);
+  };
+
+  const handleViewDetails = (tenant: Tenant, event: React.MouseEvent) => {
+    event.stopPropagation();
+    handleTenantClick(tenant);
   };
 
   return (
@@ -181,7 +194,11 @@ export const Tenants = () => {
             </TableHeader>
             <TableBody>
               {filteredTenants.map((tenant) => (
-                <TableRow key={tenant.id} className="hover:bg-muted/30">
+                <TableRow 
+                  key={tenant.id} 
+                  className="hover:bg-muted/30 cursor-pointer"
+                  onClick={() => handleTenantClick(tenant)}
+                >
                   <TableCell className="font-medium">{tenant.name}</TableCell>
                   <TableCell>
                     <Badge 
@@ -203,17 +220,21 @@ export const Tenants = () => {
                   <TableCell className="text-muted-foreground">{tenant.lastUpdated}</TableCell>
                   <TableCell>
                     <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
+                      <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
                         <Button variant="ghost" size="sm">
                           <MoreHorizontal className="w-4 h-4" />
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end" className="glass">
-                        <DropdownMenuItem>
+                        <DropdownMenuItem onClick={(e) => handleViewDetails(tenant, e)}>
+                          <Eye className="w-4 h-4 mr-2" />
+                          View Details
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={(e) => e.stopPropagation()}>
                           <Edit className="w-4 h-4 mr-2" />
                           Edit
                         </DropdownMenuItem>
-                        <DropdownMenuItem className="text-destructive">
+                        <DropdownMenuItem className="text-destructive" onClick={(e) => e.stopPropagation()}>
                           <Trash2 className="w-4 h-4 mr-2" />
                           Delete
                         </DropdownMenuItem>
@@ -226,6 +247,12 @@ export const Tenants = () => {
           </Table>
         </CardContent>
       </Card>
+
+      <TenantDetailsModal 
+        tenant={selectedTenant}
+        open={isDetailsModalOpen}
+        onOpenChange={setIsDetailsModalOpen}
+      />
     </div>
   );
 };
