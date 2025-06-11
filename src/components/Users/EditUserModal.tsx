@@ -31,7 +31,7 @@ export const EditUserModal = ({ user, open, onOpenChange, onUserUpdated, tenants
     email: '',
     role: '',
     tenant: '',
-    status: 'Active' as const
+    status: 'Active' as 'Active' | 'Inactive'
   });
   const { toast } = useToast();
 
@@ -140,7 +140,7 @@ export const EditUserModal = ({ user, open, onOpenChange, onUserUpdated, tenants
           
           <div className="space-y-2">
             <Label htmlFor="edit-status">Status</Label>
-            <Select value={formData.status} onValueChange={(value) => setFormData({ ...formData, status: value as 'Active' | 'Inactive' })}>
+            <Select value={formData.status} onValueChange={(value: 'Active' | 'Inactive') => setFormData({ ...formData, status: value })}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
