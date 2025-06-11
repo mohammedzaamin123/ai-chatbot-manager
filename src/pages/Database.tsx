@@ -1,12 +1,16 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Database as DatabaseIcon, Search, ChevronRight, ChevronDown, Table, FileText, Building, Plus, Plug, Bot, Settings } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { Database as DatabaseIcon, Search, ChevronRight, ChevronDown, Table, FileText, Building, Plug, Bot, Settings } from 'lucide-react';
 import { CreateDatabaseModal } from '@/components/Database/CreateDatabaseModal';
 import { Link } from 'react-router-dom';
+import { toast } from 'sonner';
 
 interface DatabaseCollection {
   name: string;
@@ -36,6 +40,14 @@ export const Database = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTenant, setSelectedTenant] = useState('All Tenants');
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isConnectModalOpen, setIsConnectModalOpen] = useState(false);
+  const [connectionData, setConnectionData] = useState({
+    type: 'mongodb',
+    name: '',
+    uri: '',
+    username: '',
+    password: ''
+  });
 
   const toggleCollection = (collectionName: string, tenant: string) => {
     setCollections(prev => prev.map(col => 
@@ -64,9 +76,22 @@ export const Database = () => {
     };
   };
 
-  const handleConnectMongoDB = () => {
-    console.log('Connecting to MongoDB...');
-    // TODO: Implement MongoDB connection logic
+  const handleConnectDatabase = () => {
+    if (!connectionData.name || !connectionData.uri) {
+      toast.error('Please fill in all required fields');
+      return;
+    }
+
+    // Simulate successful connection
+    toast.success(`Successfully connected to ${connectionData.name}!`);
+    setIsConnectModalOpen(false);
+    setConnectionData({
+      type: 'mongodb',
+      name: '',
+      uri: '',
+      username: '',
+      password: ''
+    });
   };
 
   return (
@@ -79,33 +104,87 @@ export const Database = () => {
           </p>
         </div>
         
-        <div className="flex items-center space-x-3">
-          <Button 
-            onClick={() => setIsCreateModalOpen(true)}
-            className="bg-blue-600 hover:bg-blue-700"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Create Database
-          </Button>
-          
-          <Button onClick={handleConnectMongoDB} variant="outline">
-            <Plug className="w-4 h-4 mr-2" />
-            Connect External DB
-          </Button>
-          
-          <Select value={selectedTenant} onValueChange={setSelectedTenant}>
-            <SelectTrigger className="w-48">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {tenants.map((tenant) => (
-                <SelectItem key={tenant} value={tenant}>
-                  {tenant}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+        <Dialog open={isConnectModalOpen} onOpenChange={setIsConnectModalOpen}>
+          <DialogTrigger asChild>
+            <Button className="bg-blue-600 hover:bg-blue-700">
+              <Plug className="w-4 h-4 mr-2" />
+              Connect Database
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="glass">
+            <DialogHeader>
+              <DialogTitle className="font-poppins">Connect External Database</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="db-type">Database Type</Label>
+                <Select value={connectionData.type} onValueChange={(value) => setConnectionData(prev => ({ ...prev, type: value }))}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="mongodb">MongoDB</SelectItem>
+                    <SelectItem value="postgresql">PostgreSQL</SelectItem>
+                    <SelectItem value="mysql">MySQL</SelectItem>
+                    <SelectItem value="sqlite">SQLite</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div>
+                <Label htmlFor="db-name">Database Name</Label>
+                <Input
+                  id="db-name"
+                  value={connectionData.name}
+                  onChange={(e) => setConnectionData(prev => ({ ...prev, name: e.target.value }))}
+                  placeholder="Enter database name"
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor="db-uri">Connection URI</Label>
+                <Input
+                  id="db-uri"
+                  type="password"
+                  value={connectionData.uri}
+                  onChange={(e) => setConnectionData(prev => ({ ...prev, uri: e.target.value }))}
+                  placeholder="mongodb://localhost:27017/mydb"
+                />
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="db-username">Username (Optional)</Label>
+                  <Input
+                    id="db-username"
+                    value={connectionData.username}
+                    onChange={(e) => setConnectionData(prev => ({ ...prev, username: e.target.value }))}
+                    placeholder="Username"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="db-password">Password (Optional)</Label>
+                  <Input
+                    id="db-password"
+                    type="password"
+                    value={connectionData.password}
+                    onChange={(e) => setConnectionData(prev => ({ ...prev, password: e.target.value }))}
+                    placeholder="Password"
+                  />
+                </div>
+              </div>
+              
+              <div className="flex justify-end space-x-2 pt-4">
+                <Button variant="outline" onClick={() => setIsConnectModalOpen(false)}>
+                  Cancel
+                </Button>
+                <Button onClick={handleConnectDatabase}>
+                  Connect Database
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
 
       {/* Tenant-specific Stats */}
@@ -213,12 +292,6 @@ export const Database = () => {
           <div className="flex justify-between items-center">
             <CardTitle className="font-poppins">Database Collections</CardTitle>
             <div className="flex items-center space-x-3">
-              <Link to="/chatbot">
-                <Button variant="outline" size="sm">
-                  <Bot className="w-4 h-4 mr-2" />
-                  Create Chatbot
-                </Button>
-              </Link>
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
                 <Input
@@ -228,6 +301,24 @@ export const Database = () => {
                   className="pl-10 w-64"
                 />
               </div>
+              <Select value={selectedTenant} onValueChange={setSelectedTenant}>
+                <SelectTrigger className="w-48">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {tenants.map((tenant) => (
+                    <SelectItem key={tenant} value={tenant}>
+                      {tenant}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Link to="/chatbot">
+                <Button variant="outline" size="sm">
+                  <Bot className="w-4 h-4 mr-2" />
+                  Create Chatbot
+                </Button>
+              </Link>
             </div>
           </div>
         </CardHeader>

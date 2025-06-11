@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Plus, Search, MoreHorizontal, Edit, Trash2, Upload, Eye } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { TenantDetailsModal } from '@/components/Tenants/TenantDetailsModal';
+import { toast } from 'sonner';
 
 interface Tenant {
   id: string;
@@ -18,6 +19,7 @@ interface Tenant {
   channels: string[];
   lastUpdated: string;
   logo?: string;
+  mongoUri?: string;
 }
 
 const mockTenants: Tenant[] = [
@@ -26,50 +28,100 @@ const mockTenants: Tenant[] = [
     name: 'Acme Corp',
     status: 'Active',
     channels: ['Web', 'WhatsApp'],
-    lastUpdated: '2024-01-15'
+    lastUpdated: '2024-01-15',
+    mongoUri: 'mongodb://acme-db'
   },
   {
     id: '2',
     name: 'TechStart Inc',
     status: 'Active',
     channels: ['Web', 'Instagram', 'Facebook'],
-    lastUpdated: '2024-01-14'
+    lastUpdated: '2024-01-14',
+    mongoUri: 'mongodb://techstart-db'
   },
   {
     id: '3',
     name: 'RetailPlus',
     status: 'Inactive',
     channels: ['Web'],
-    lastUpdated: '2024-01-10'
+    lastUpdated: '2024-01-10',
+    mongoUri: 'mongodb://retail-db'
   }
 ];
 
 export const Tenants = () => {
+  const [tenants, setTenants] = useState(mockTenants);
   const [searchQuery, setSearchQuery] = useState('');
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedTenant, setSelectedTenant] = useState<Tenant | null>(null);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
+  const [editingTenant, setEditingTenant] = useState<Tenant | null>(null);
   const [newTenant, setNewTenant] = useState({
     name: '',
     mongoUri: '',
     logo: null as File | null
   });
 
-  const filteredTenants = mockTenants.filter(tenant =>
+  const filteredTenants = tenants.filter(tenant =>
     tenant.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const handleLogoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleLogoUpload = (event: React.ChangeEvent<HTMLInputElement>, isEdit = false) => {
     const file = event.target.files?.[0];
     if (file) {
-      setNewTenant(prev => ({ ...prev, logo: file }));
+      if (isEdit && editingTenant) {
+        setEditingTenant(prev => prev ? { ...prev, logo: file.name } : null);
+      } else {
+        setNewTenant(prev => ({ ...prev, logo: file }));
+      }
     }
   };
 
   const handleAddTenant = () => {
-    console.log('Adding tenant:', newTenant);
-    setIsAddModalOpen(false);
+    if (!newTenant.name || !newTenant.mongoUri) {
+      toast.error('Please fill in all required fields');
+      return;
+    }
+
+    const tenant: Tenant = {
+      id: (tenants.length + 1).toString(),
+      name: newTenant.name,
+      status: 'Active',
+      channels: ['Web'],
+      lastUpdated: new Date().toISOString().split('T')[0],
+      mongoUri: newTenant.mongoUri,
+      logo: newTenant.logo?.name
+    };
+
+    setTenants(prev => [...prev, tenant]);
     setNewTenant({ name: '', mongoUri: '', logo: null });
+    setIsAddModalOpen(false);
+    toast.success('Tenant added successfully!');
+  };
+
+  const handleEditTenant = (tenant: Tenant) => {
+    setEditingTenant({ ...tenant });
+    setIsEditModalOpen(true);
+  };
+
+  const handleUpdateTenant = () => {
+    if (!editingTenant?.name || !editingTenant?.mongoUri) {
+      toast.error('Please fill in all required fields');
+      return;
+    }
+
+    setTenants(prev => prev.map(tenant => 
+      tenant.id === editingTenant.id ? editingTenant : tenant
+    ));
+    setIsEditModalOpen(false);
+    setEditingTenant(null);
+    toast.success('Tenant updated successfully!');
+  };
+
+  const handleDeleteTenant = (tenantId: string) => {
+    setTenants(prev => prev.filter(tenant => tenant.id !== tenantId));
+    toast.success('Tenant deleted successfully!');
   };
 
   const handleTenantClick = (tenant: Tenant) => {
@@ -136,7 +188,7 @@ export const Tenants = () => {
                     id="logo-upload"
                     type="file"
                     accept="image/*"
-                    onChange={handleLogoUpload}
+                    onChange={(e) => handleLogoUpload(e)}
                     className="hidden"
                   />
                   <Button 
@@ -165,6 +217,73 @@ export const Tenants = () => {
           </DialogContent>
         </Dialog>
       </div>
+
+      {/* Edit Modal */}
+      <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
+        <DialogContent className="glass">
+          <DialogHeader>
+            <DialogTitle className="font-poppins">Edit Tenant</DialogTitle>
+          </DialogHeader>
+          {editingTenant && (
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="edit-tenant-name">Tenant Name</Label>
+                <Input
+                  id="edit-tenant-name"
+                  value={editingTenant.name}
+                  onChange={(e) => setEditingTenant(prev => prev ? { ...prev, name: e.target.value } : null)}
+                  placeholder="Enter tenant name"
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor="edit-mongo-uri">MongoDB URI</Label>
+                <Input
+                  id="edit-mongo-uri"
+                  type="password"
+                  value={editingTenant.mongoUri || ''}
+                  onChange={(e) => setEditingTenant(prev => prev ? { ...prev, mongoUri: e.target.value } : null)}
+                  placeholder="mongodb://..."
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor="edit-logo-upload">Logo Upload</Label>
+                <div className="border-2 border-dashed border-muted rounded-lg p-6 text-center hover:border-muted-foreground/50 transition-colors">
+                  <Upload className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
+                  <Input
+                    id="edit-logo-upload"
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => handleLogoUpload(e, true)}
+                    className="hidden"
+                  />
+                  <Button 
+                    variant="outline" 
+                    onClick={() => document.getElementById('edit-logo-upload')?.click()}
+                  >
+                    Choose File
+                  </Button>
+                  {editingTenant.logo && (
+                    <p className="text-xs text-muted-foreground mt-2">
+                      Current: {editingTenant.logo}
+                    </p>
+                  )}
+                </div>
+              </div>
+              
+              <div className="flex justify-end space-x-2 pt-4">
+                <Button variant="outline" onClick={() => setIsEditModalOpen(false)}>
+                  Cancel
+                </Button>
+                <Button onClick={handleUpdateTenant}>
+                  Update Tenant
+                </Button>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
       <Card className="glass">
         <CardHeader>
@@ -230,11 +349,20 @@ export const Tenants = () => {
                           <Eye className="w-4 h-4 mr-2" />
                           View Details
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={(e) => e.stopPropagation()}>
+                        <DropdownMenuItem onClick={(e) => {
+                          e.stopPropagation();
+                          handleEditTenant(tenant);
+                        }}>
                           <Edit className="w-4 h-4 mr-2" />
                           Edit
                         </DropdownMenuItem>
-                        <DropdownMenuItem className="text-destructive" onClick={(e) => e.stopPropagation()}>
+                        <DropdownMenuItem 
+                          className="text-destructive" 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteTenant(tenant.id);
+                          }}
+                        >
                           <Trash2 className="w-4 h-4 mr-2" />
                           Delete
                         </DropdownMenuItem>
