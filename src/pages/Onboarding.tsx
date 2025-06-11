@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -20,7 +19,7 @@ import {
   MessageSquare,
   ShoppingCart,
   HelpCircle,
-  Skip,
+  SkipForward,
   Sparkles
 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -426,7 +425,7 @@ export const Onboarding = () => {
           
           <div className="flex space-x-2">
             <Button variant="ghost" onClick={handleSkip}>
-              <Skip className="w-4 h-4 mr-2" />
+              <SkipForward className="w-4 h-4 mr-2" />
               Skip
             </Button>
             
